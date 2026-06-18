@@ -1,57 +1,57 @@
-<aside class="sidebar-light flex-shrink-0" id="sidebar-admin">
+<aside class="sidebar-light" id="sidebar-admin">
     {{-- Logo --}}
-    <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
-        <div class="w-8 h-8 bg-[#009688] rounded-lg flex items-center justify-center flex-shrink-0">
-            <i class="fa-solid fa-pills text-white text-sm"></i>
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+            <i class="fa-solid fa-pills"></i>
         </div>
-        <div>
-            <p class="text-[13px] font-bold text-gray-800 leading-tight">MediFlow Pro</p>
-            <p class="text-[10px] text-gray-500 leading-tight">Pharmacy Management</p>
+        <div class="sidebar-logo-text">
+            <p class="sidebar-logo-title">MediFlow Pro</p>
+            <p class="sidebar-logo-subtitle">Pharmacy Management</p>
         </div>
     </div>
 
     {{-- Navigation --}}
-    <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-        <a href="{{ route('dashboard.admin') }}"
-           class="{{ request()->routeIs('dashboard.admin') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-            <i class="fa-solid fa-gauge-high w-4 text-center {{ request()->routeIs('dashboard.admin') ? 'text-white' : 'text-gray-400' }} text-sm"></i>
-            Dashboard
-        </a>
+    <nav class="sidebar-nav">
+        @php
+            $adminMenus = [
+                ['route' => 'dashboard.admin',    'icon' => 'fa-gauge-high',        'label' => 'Dashboard'],
+                ['route' => 'data-obat',          'icon' => 'fa-capsules',          'label' => 'Data Obat'],
+                ['route' => 'supplier',           'icon' => 'fa-truck',             'label' => 'Supplier'],
+                ['route' => 'kategori-obat',      'icon' => 'fa-tag',               'label' => 'Kategori Obat'],
+                ['route' => 'golongan-obat',      'icon' => 'fa-layer-group',       'label' => 'Golongan Obat'],
+                ['route' => 'stok-obat',          'icon' => 'fa-boxes-stacked',     'label' => 'Stok Obat'],
+                ['route' => 'transaksi',          'icon' => 'fa-cart-shopping',     'label' => 'Transaksi'],
+                ['route' => 'riwayat-transaksi',  'icon' => 'fa-clock-rotate-left', 'label' => 'Riwayat Transaksi'],
+                ['route' => 'laporan',            'icon' => 'fa-chart-bar',         'label' => 'Laporan'],
+                ['route' => 'pengguna',           'icon' => 'fa-users',             'label' => 'Pengguna'],
+            ];
+        @endphp
 
-        <a href="{{ route('pengguna') }}"
-           class="{{ request()->routeIs('pengguna') || request()->routeIs('employees.*') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-            <i class="fa-solid fa-users w-4 text-center {{ request()->routeIs('pengguna') || request()->routeIs('employees.*') ? 'text-white' : 'text-gray-400' }} text-sm"></i>
-            Pengguna
-        </a>
-
-        {{-- Laporan Dropdown / Submenus --}}
-        <div class="pt-2 pb-1">
-            <p class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Laporan</p>
-            <a href="{{ route('admin.laporan.masuk') }}"
-               class="{{ request()->routeIs('admin.laporan.masuk') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                <i class="fa-solid fa-arrow-trend-up w-4 text-center {{ request()->routeIs('admin.laporan.masuk') ? 'text-white' : 'text-gray-400' }} text-sm"></i>
-                Laporan Masuk
+        @foreach($adminMenus as $menu)
+            @php
+                $isActive = request()->routeIs($menu['route']) ||
+                            ($menu['route'] === 'supplier' && request()->routeIs('suppliers.*')) ||
+                            ($menu['route'] === 'pengguna' && request()->routeIs('employees.*')) ||
+                            ($menu['route'] === 'laporan' && request()->routeIs('admin.laporan.*'));
+            @endphp
+            <a href="{{ route($menu['route']) }}" class="{{ $isActive ? 'active' : '' }}">
+                <i class="fa-solid {{ $menu['icon'] }} nav-icon"></i>
+                {{ $menu['label'] }}
             </a>
-            <a href="{{ route('admin.laporan.keluar') }}"
-               class="{{ request()->routeIs('admin.laporan.keluar') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                <i class="fa-solid fa-arrow-trend-down w-4 text-center {{ request()->routeIs('admin.laporan.keluar') ? 'text-white' : 'text-gray-400' }} text-sm"></i>
-                Laporan Keluar
-            </a>
-            <a href="{{ route('admin.laporan.laba') }}"
-               class="{{ request()->routeIs('admin.laporan.laba') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                <i class="fa-solid fa-chart-line w-4 text-center {{ request()->routeIs('admin.laporan.laba') ? 'text-white' : 'text-gray-400' }} text-sm"></i>
-                Laporan Laba
-            </a>
-        </div>
+        @endforeach
     </nav>
 
-    {{-- Bottom: Logout Only --}}
-    <div class="px-3 py-3 border-t border-gray-100">
-        <form action="{{ route('logout') }}" method="POST" class="m-0">
+    {{-- Bottom: Pengaturan & Keluar --}}
+    <div class="sidebar-bottom">
+        <a href="{{ route('pengaturan') }}" class="{{ request()->routeIs('pengaturan') ? 'active' : '' }}">
+            <i class="fa-solid fa-gear nav-icon"></i>
+            Pengaturan
+        </a>
+        <form method="POST" action="{{ route('logout') }}" style="margin-top: 4px; margin-bottom: 0;">
             @csrf
-            <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-red-600 hover:bg-red-50 transition-all text-left">
-                <i class="fa-solid fa-right-from-bracket w-4 text-center text-red-400 text-sm"></i>
-                Logout
+            <button type="submit" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; font-family: 'Inter', sans-serif;">
+                <i class="fa-solid fa-right-from-bracket nav-icon" style="color: #9ca3af;"></i>
+                Keluar
             </button>
         </form>
     </div>

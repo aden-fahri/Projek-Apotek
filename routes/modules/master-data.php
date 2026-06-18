@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SupplierController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +19,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // F-05: Suplayer
-    Route::get('/supplier',         fn() => redirect()->route('dashboard.admin'))->name('supplier');
+    Route::get('/supplier', function () {
+        return redirect()->route('suppliers.index');
+    })->name('supplier');
+    Route::resource('suppliers', SupplierController::class);
+    Route::post('suppliers/{supplier}/toggle-status', [SupplierController::class, 'toggleStatus'])->name('suppliers.toggle-status');
 
     // F-06: Kategori Obat
     Route::get('/kategori-obat',    fn() => redirect()->route('dashboard.admin'))->name('kategori-obat');

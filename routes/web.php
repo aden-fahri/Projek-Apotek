@@ -1,14 +1,14 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes — MediFlow Pro
 | File ini harus MINIMAL. Tambahkan route ke file modules/ masing-masing.
 |--------------------------------------------------------------------------
+|
 */
 
 // Root → Login (sesuai AGENTS.md §7)
