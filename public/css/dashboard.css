@@ -1,0 +1,106 @@
+:root {
+    --primary: #0D9488;
+    --primary-dark: #0F766E;
+    --background: #F5F0E8;
+    --surface: #FAF8F4;
+    --text-primary: #1E293B;
+    --text-secondary: #64748B;
+}
+
+body {
+    font-family: 'Quicksand', sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: var(--primary-dark);
+    color: #ffffff;
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.brand {
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-weight: 600;
+}
+
+.btn-logout {
+    padding: 8px 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    background-color: transparent;
+    color: #ffffff;
+    font-family: inherit;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+    background-color: #ffffff;
+    color: var(--primary-dark);
+    border-color: #ffffff;
+}
+
+main {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.welcome-card {
+    background-color: var(--surface);
+    padding: 48px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    max-width: 500px;
+    width: 100%;
+}
+
+.welcome-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 12px 0;
+}
+
+.welcome-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.user-badge {
+    display: inline-block;
+    margin-top: 16px;
+    background-color: rgba(13, 148, 136, 0.1);
+    color: var(--primary);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
