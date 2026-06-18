@@ -453,10 +453,117 @@
             color: var(--text-secondary);
             font-weight: 500;
         }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 320px;
+            max-width: 400px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            border-left-color: var(--success);
+        }
+
+        .toast-danger {
+            border-left-color: var(--danger);
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background-color: #F1F5F9;
+            color: var(--text-primary);
+        }
     </style>
 @endpush
 
 @section('content')
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer">
+        @if($errors->any())
+        <div class="toast toast-danger show" id="errorToast">
+            <div class="toast-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">Kesalahan</div>
+                <div class="toast-message">Mohon periksa kembali input form Anda.</div>
+            </div>
+            <button type="button" class="toast-close" onclick="closeToast('errorToast')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        @endif
+
+        @if(session('success'))
+        <div class="toast toast-success show" id="successToast">
+            <div class="toast-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">Berhasil</div>
+                <div class="toast-message">{{ session('success') }}</div>
+            </div>
+            <button type="button" class="toast-close" onclick="closeToast('successToast')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        @endif
+    </div>
+
     <div class="space-y-6">
         <!-- Header Section -->
         <div class="header-section">
@@ -464,7 +571,7 @@
                 <h1 class="header-title">Manajemen Karyawan</h1>
                 <p class="header-subtitle">Kelola akun dan akses karyawan apotek</p>
             </div>
-            <a href="#" class="btn-add">
+            <a href="{{ route('employees.create') }}" class="btn-add">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Tambah Karyawan
             </a>
@@ -570,7 +677,7 @@
                             <td>{{ $employee->created_at ? $employee->created_at->format('d M Y') : '-' }}</td>
                             <td>
                                 <div class="action-cell">
-                                    <a href="#" class="btn-action edit" title="Edit Karyawan">
+                                    <a href="{{ route('employees.edit', $employee->id) }}" class="btn-action edit" title="Edit Karyawan">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                     </a>
                                     <a href="#" class="btn-action toggle" title="Ubah Status Keaktifan">
@@ -632,3 +739,27 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        function closeToast(id) {
+            const toast = document.getElementById(id);
+            if (toast) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }
+
+        // Auto close toast after 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    if (toast) {
+                        toast.classList.remove('show');
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+@endpush

@@ -38,5 +38,8 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        // 40 random employees
+        User::factory(40)->create();
     }
 }
