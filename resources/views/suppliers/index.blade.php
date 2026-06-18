@@ -1,20 +1,14 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kelola Supplier - MediFlow</title>
-    
-    <!-- Google Fonts: Quicksand -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+@extends('layouts.admin')
 
+@section('title', 'Kelola Supplier')
+
+@push('styles')
     <!-- CSS stylesheet loaded using asset() helper -->
     <link rel="stylesheet" href="{{ asset('css/suppliers.css') }}">
-</head>
-<body>
-    <div class="container">
+@endpush
+
+@section('content')
+    <div class="supplier-container">
         <!-- Header Section -->
         <div class="header-section">
             <div class="header-title-area">
@@ -333,7 +327,9 @@
             </form>
         </div>
     </div>
+@endsection
 
+@push('scripts')
     <!-- Modals & Dropdown Script -->
     <script>
         // Filter dropdown logic
@@ -415,5 +411,4 @@
             }
         });
     </script>
-</body>
-</html>
+@endpush

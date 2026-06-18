@@ -29,19 +29,8 @@
     padding: 0;
 }
 
-body {
-    background-color: var(--background);
-    font-family: 'Quicksand', sans-serif;
-    color: var(--text-primary);
-    min-height: 100vh;
-    padding: 40px 24px;
-    display: flex;
-    justify-content: center;
-}
-
-.container {
+.supplier-container {
     width: 100%;
-    max-width: 1120px;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -696,9 +685,7 @@ body {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    body {
-        padding: 24px 16px;
-    }
+    /* body padding removed */
     
     .header-section {
         flex-direction: column;

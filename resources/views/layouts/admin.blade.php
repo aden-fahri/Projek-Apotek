@@ -48,9 +48,14 @@
             @endphp
 
             @foreach($adminMenus as $menu)
+                @php
+                    $isActive = request()->routeIs($menu['route']) || 
+                                ($menu['route'] === 'supplier' && request()->routeIs('suppliers.*')) ||
+                                ($menu['route'] === 'pengguna' && request()->routeIs('employees.*'));
+                @endphp
                 <a href="{{ route($menu['route']) }}"
-                   class="{{ request()->routeIs($menu['route']) ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                    <i class="fa-solid {{ $menu['icon'] }} w-4 text-center {{ request()->routeIs($menu['route']) ? 'text-white' : 'text-gray-400' }} text-sm"></i>
+                   class="{{ $isActive ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
+                    <i class="fa-solid {{ $menu['icon'] }} w-4 text-center {{ $isActive ? 'text-white' : 'text-gray-400' }} text-sm"></i>
                     {{ $menu['label'] }}
                 </a>
             @endforeach
