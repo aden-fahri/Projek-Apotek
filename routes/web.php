@@ -19,3 +19,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
+
+// Load route per modul (contains employee routes from main branch)
+require __DIR__.'/modules/auth.php';
