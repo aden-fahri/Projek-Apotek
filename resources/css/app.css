@@ -1,5 +1,107 @@
-/*
- * File ini tidak digunakan dalam project ini.
- * Project menggunakan plain CSS di public/css/ secara langsung (tidak melalui Vite).
- * Tailwind telah dihapus karena tidak digunakan.
- */
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
+    --color-primary: #009688;
+    --color-primary-dark: #00796b;
+    --color-primary-light: #b2dfdb;
+    --color-sidebar-dark: #1a3a30;
+    --color-sidebar-darker: #132e25;
+    --color-bg: #f4f6f8;
+    --color-card: #ffffff;
+    --color-danger: #ef4444;
+    --color-warning: #f97316;
+    --color-success: #10b981;
+}
+
+@layer base {
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Quicksand', sans-serif;
+        background-color: #f4f6f8;
+        color: #1f2937;
+    }
+}
+
+/* ===== DASHBOARD CARDS & BADGES ===== */
+.stat-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    border: 1px solid #e5e7eb;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    border-color: rgba(0, 150, 136, 0.3);
+}
+
+.badge-terjual {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e0f2f1;
+    color: #009688;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+}
+
+.badge-hari {
+    display: inline-flex;
+    align-items: center;
+    background-color: #ffedd5;
+    color: #ea580c;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+}
+
+.badge-selesai {
+    display: inline-flex;
+    align-items: center;
+    background-color: #d1fae5;
+    color: #059669;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+}
+
+/* ===== TABLE STYLING ===== */
+.table-header th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.table-body td {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.table-body tr:hover td {
+    background-color: #f9fafb;
+}
+
+.table-body tr:last-child td {
+    border-bottom: none;
+}
+

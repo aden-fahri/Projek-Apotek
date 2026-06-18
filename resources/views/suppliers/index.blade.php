@@ -15,14 +15,6 @@
                 <h1 class="header-title">Kelola Supplier</h1>
                 <p class="header-subtitle">Kelola data master supplier / pemasok obat apotek</p>
             </div>
-            
-            <div class="user-nav">
-                <span>{{ auth()->user()->name }} ({{ ucfirst(auth()->user()->role) }})</span>
-                <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
-                    @csrf
-                    <button type="submit" class="btn-logout">Keluar</button>
-                </form>
-            </div>
         </div>
 
         <!-- Session Success Alert -->
