@@ -203,19 +203,20 @@ Aplikasi web berbasis Laravel untuk **manajemen apotek** yang mencakup: pengelol
 
 ### 3.6 Laporan & Export Excel
 
-#### F-17: Laporan Masuk (Pembelian)
-- Laporan semua pembelian dari suplayer
-- Filter: periode tanggal, suplayer
-- Tampilkan: tanggal, nomor invoice, suplayer, total pembelian
-- Summary: total pembelian dalam periode
+#### F-17: Laporan Masuk (Uang Masuk / Penjualan)
+- Laporan semua uang masuk hasil transaksi penjualan dari kasir
+- Filter: periode tanggal, kasir, metode pembayaran
+- Tampilkan: tanggal, nomor invoice, kasir, metode pembayaran, total penjualan
+- Summary: total uang masuk (penjualan) dalam periode
 - **Export ke Excel (.xlsx)**
 
-#### F-18: Laporan Keluar (Penjualan)
-- Laporan semua penjualan/transaksi
-- Filter: periode tanggal, kasir, metode pembayaran
-- Tampilkan: tanggal, nomor invoice, kasir, total penjualan
-- Summary: total penjualan dalam periode
+#### F-18: Laporan Keluar (Uang Keluar / Pembelian)
+- Laporan semua uang keluar untuk pembelian stok obat dari suplayer
+- Filter: periode tanggal, suplayer
+- Tampilkan: tanggal, nomor invoice PO, suplayer, total pembelian
+- Summary: total uang keluar (pembelian) dalam periode
 - **Export ke Excel (.xlsx)**
+
 
 #### F-19: Laporan Laba (Kotor & Bersih)
 - **Laba Kotor** = Total Penjualan − Total HPP (Harga Beli)
