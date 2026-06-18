@@ -92,6 +92,7 @@
             gap: 8px;
             transition: background-color 0.2s ease, transform 0.1s ease;
             box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+            text-decoration: none;
         }
 
         .btn-add:hover {
@@ -186,7 +187,7 @@
         }
 
         /* Filter Section */
-        .filter-bar {
+        .filter-form {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -297,6 +298,7 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             background-color: #FAF8F4;
+            white-space: nowrap;
         }
 
         .employee-table td {
@@ -305,6 +307,7 @@
             color: var(--text-primary);
             border-bottom: 1px solid #F1F5F9;
             vertical-align: middle;
+            white-space: nowrap;
         }
 
         .employee-table tbody tr {
@@ -333,6 +336,7 @@
             padding: 4px 8px;
             border-radius: 6px;
             display: inline-block;
+            text-transform: capitalize;
         }
 
         .badge-role.admin {
@@ -393,6 +397,7 @@
             align-items: center;
             justify-content: center;
             transition: background-color 0.2s ease, color 0.2s ease;
+            text-decoration: none;
         }
 
         .btn-action:hover {
@@ -427,6 +432,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            list-style: none;
         }
 
         .page-link {
@@ -445,6 +451,7 @@
             transition: all 0.2s ease;
             user-select: none;
             text-decoration: none;
+            padding: 0 8px;
         }
 
         .page-link:hover:not(.disabled):not(.active) {
@@ -463,6 +470,14 @@
         .page-link.disabled {
             opacity: 0.4;
             cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
     </style>
 </head>
@@ -474,48 +489,41 @@
                 <h1 class="header-title">Manajemen Karyawan</h1>
                 <p class="header-subtitle">Kelola akun dan akses karyawan apotek</p>
             </div>
-            <button class="btn-add">
-                <!-- Plus Icon SVG -->
+            <a href="#" class="btn-add">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Tambah Karyawan
-            </button>
+            </a>
         </div>
 
         <!-- Metric Cards -->
         <div class="metrics-grid">
-            <!-- Total Karyawan Card -->
             <div class="metric-card">
                 <div class="metric-icon-wrapper karyawan">
-                    <!-- Users Icon SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 </div>
                 <div class="metric-details">
                     <span class="metric-label">Total Karyawan</span>
-                    <span class="metric-value">42</span>
+                    <span class="metric-value">{{ $totalKaryawan }}</span>
                 </div>
             </div>
 
-            <!-- Total Admin Card -->
             <div class="metric-card">
                 <div class="metric-icon-wrapper admin">
-                    <!-- Shield Icon SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                 </div>
                 <div class="metric-details">
                     <span class="metric-label">Total Admin</span>
-                    <span class="metric-value">5</span>
+                    <span class="metric-value">{{ $totalAdmin }}</span>
                 </div>
             </div>
 
-            <!-- Total Kasir Card -->
             <div class="metric-card">
                 <div class="metric-icon-wrapper kasir">
-                    <!-- Cash Register Icon SVG (using custom SVG representation) -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                 </div>
                 <div class="metric-details">
                     <span class="metric-label">Total Kasir</span>
-                    <span class="metric-value">37</span>
+                    <span class="metric-value">{{ $totalKasir }}</span>
                 </div>
             </div>
         </div>
@@ -523,27 +531,26 @@
         <!-- Main Panel -->
         <div class="panel">
             <!-- Filter Bar -->
-            <div class="filter-bar">
+            <form action="{{ route('employees.index') }}" method="GET" class="filter-form">
                 <div class="search-container">
                     <span class="search-icon">
-                        <!-- Search Icon SVG -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </span>
-                    <input type="text" class="search-input" placeholder="Cari Nama / Email...">
+                    <input type="text" name="search" class="search-input" placeholder="Cari Nama / Email..." value="{{ request('search') }}" onchange="this.form.submit()">
                 </div>
                 <div class="dropdown-group">
-                    <select class="select-filter">
-                        <option>Semua Role</option>
-                        <option>Admin</option>
-                        <option>Kasir</option>
+                    <select name="role" class="select-filter" onchange="this.form.submit()">
+                        <option value="Semua Role" {{ request('role') == 'Semua Role' ? 'selected' : '' }}>Semua Role</option>
+                        <option value="Admin" {{ request('role') == 'Admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="Kasir" {{ request('role') == 'Kasir' ? 'selected' : '' }}>Kasir</option>
                     </select>
-                    <select class="select-filter">
-                        <option>Semua Status</option>
-                        <option>Aktif</option>
-                        <option>Nonaktif</option>
+                    <select name="status" class="select-filter" onchange="this.form.submit()">
+                        <option value="Semua Status" {{ request('status') == 'Semua Status' ? 'selected' : '' }}>Semua Status</option>
+                        <option value="Aktif" {{ request('status') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="Nonaktif" {{ request('status') == 'Nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                     </select>
                 </div>
-            </div>
+            </form>
 
             <!-- Table responsive container -->
             <div class="table-responsive">
@@ -561,106 +568,92 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Row 1 -->
+                        @forelse($employees as $index => $employee)
                         <tr>
-                            <td class="col-id">1</td>
-                            <td class="col-name">Budi Santoso</td>
-                            <td>budi.admin@mediflow.com</td>
-                            <td><span class="badge-role admin">Admin</span></td>
-                            <td>0812-3456-7890</td>
+                            <td class="col-id">{{ $employees->firstItem() + $index }}</td>
+                            <td class="col-name">{{ $employee->name }}</td>
+                            <td>{{ $employee->email }}</td>
                             <td>
+                                <span class="badge-role {{ $employee->role == 'admin' ? 'admin' : 'kasir' }}">
+                                    {{ ucfirst($employee->role) }}
+                                </span>
+                            </td>
+                            <td>{{ $employee->telepon ?? '-' }}</td>
+                            <td>
+                                @if($employee->is_active)
                                 <span class="status-indicator aktif">
                                     <span class="status-dot"></span>
                                     Aktif
                                 </span>
-                            </td>
-                            <td>12 Jan 2023</td>
-                            <td>
-                                <div class="action-cell">
-                                    <button class="btn-action edit" title="Edit Karyawan">
-                                        <!-- Pencil/Edit Icon SVG -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    </button>
-                                    <button class="btn-action toggle" title="Ubah Status Keaktifan">
-                                        <!-- Power/Switch Icon SVG -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="3"></circle></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 2 -->
-                        <tr>
-                            <td class="col-id">2</td>
-                            <td class="col-name">Siti Aminah</td>
-                            <td>siti.a@mediflow.com</td>
-                            <td><span class="badge-role kasir">Kasir</span></td>
-                            <td>0856-7890-1234</td>
-                            <td>
-                                <span class="status-indicator aktif">
-                                    <span class="status-dot"></span>
-                                    Aktif
-                                </span>
-                            </td>
-                            <td>05 Mar 2023</td>
-                            <td>
-                                <div class="action-cell">
-                                    <button class="btn-action edit" title="Edit Karyawan">
-                                        <!-- Pencil/Edit Icon SVG -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    </button>
-                                    <button class="btn-action toggle" title="Ubah Status Keaktifan">
-                                        <!-- Power/Switch Icon SVG -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="3"></circle></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 3 -->
-                        <tr>
-                            <td class="col-id">3</td>
-                            <td class="col-name">Agus Wijaya</td>
-                            <td>agus.w@mediflow.com</td>
-                            <td><span class="badge-role kasir">Kasir</span></td>
-                            <td>0821-4321-0987</td>
-                            <td>
+                                @else
                                 <span class="status-indicator nonaktif">
                                     <span class="status-dot"></span>
                                     Nonaktif
                                 </span>
+                                @endif
                             </td>
-                            <td>20 Jun 2023</td>
+                            <td>{{ $employee->created_at ? $employee->created_at->format('d M Y') : '-' }}</td>
                             <td>
                                 <div class="action-cell">
-                                    <button class="btn-action edit" title="Edit Karyawan">
-                                        <!-- Pencil/Edit Icon SVG -->
+                                    <a href="#" class="btn-action edit" title="Edit Karyawan">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    </button>
-                                    <button class="btn-action toggle" title="Ubah Status Keaktifan">
-                                        <!-- Power/Switch Icon SVG -->
+                                    </a>
+                                    <a href="#" class="btn-action toggle" title="Ubah Status Keaktifan">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="3"></circle></svg>
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="empty-state">Data karyawan tidak ditemukan.</td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
 
             <!-- Footer Pagination area -->
+            @if($employees->hasPages())
             <div class="panel-footer">
-                <span class="footer-info">Menampilkan 1 - 10 dari 42 karyawan</span>
+                <span class="footer-info">Menampilkan {{ $employees->firstItem() }} - {{ $employees->lastItem() }} dari {{ $employees->total() }} karyawan</span>
+                
                 <div class="pagination">
-                    <span class="page-link disabled">&lt;</span>
-                    <span class="page-link active">1</span>
-                    <span class="page-link">2</span>
-                    <span class="page-link">3</span>
-                    <span class="page-link disabled">...</span>
-                    <span class="page-link">5</span>
-                    <span class="page-link">&gt;</span>
+                    {{-- Previous Page Link --}}
+                    @if ($employees->onFirstPage())
+                        <span class="page-link disabled">&lt;</span>
+                    @else
+                        <a href="{{ $employees->previousPageUrl() }}" class="page-link">&lt;</a>
+                    @endif
+
+                    {{-- Pagination Elements --}}
+                    @foreach ($employees->links()->elements as $element)
+                        {{-- "Three Dots" Separator --}}
+                        @if (is_string($element))
+                            <span class="page-link disabled">{{ $element }}</span>
+                        @endif
+
+                        {{-- Array Of Links --}}
+                        @if (is_array($element))
+                            @foreach ($element as $page => $url)
+                                @if ($page == $employees->currentPage())
+                                    <span class="page-link active">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="page-link">{{ $page }}</a>
+                                @endif
+                            @endforeach
+                        @endif
+                    @endforeach
+
+                    {{-- Next Page Link --}}
+                    @if ($employees->hasMorePages())
+                        <a href="{{ $employees->nextPageUrl() }}" class="page-link">&gt;</a>
+                    @else
+                        <span class="page-link disabled">&gt;</span>
+                    @endif
                 </div>
             </div>
+            @endif
         </div>
     </div>
 </body>
