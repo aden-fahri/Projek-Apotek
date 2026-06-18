@@ -578,7 +578,7 @@
                                     {{ ucfirst($employee->role) }}
                                 </span>
                             </td>
-                            <td>{{ $employee->telepon ?? '-' }}</td>
+                            <td>{{ $employee->phone ?? '-' }}</td>
                             <td>
                                 @if($employee->is_active)
                                 <span class="status-indicator aktif">
