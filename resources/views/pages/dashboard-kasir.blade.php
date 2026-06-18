@@ -4,16 +4,16 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-<div class="space-y-5">
+<div class="p-6 space-y-6">
 
     {{-- ===== WELCOME ===== --}}
     <div>
-        <h2 class="text-[20px] font-bold text-gray-800">Selamat Datang, {{ $data['userName'] }}</h2>
-        <p class="text-[13px] text-gray-500 mt-0.5">Kelola transaksi dan pantau kondisi stok hari ini.</p>
+        <h2 class="text-[22px] font-bold text-gray-800">Selamat Datang, {{ $data['userName'] }}</h2>
+        <p class="text-[13px] text-gray-500 mt-1">Kelola transaksi dan pantau kondisi stok hari ini.</p>
     </div>
 
     {{-- ===== ROW 1: 4 STAT CARDS BESAR ===== --}}
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {{-- Total Penjualan --}}
         <div class="stat-card">
@@ -79,7 +79,7 @@
     </div>
 
     {{-- ===== ROW 2: 4 MINI STAT CARDS ===== --}}
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="stat-card flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-[#e0f2f1] flex items-center justify-center flex-shrink-0">
                 <i class="fa-solid fa-chart-line text-[#009688] text-[14px]"></i>
@@ -119,9 +119,9 @@
     </div>
 
     {{-- ===== ROW 3: CHARTS ===== --}}
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Chart Penjualan --}}
-        <div class="col-span-2 stat-card">
+        <div class="lg:col-span-2 stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-3">Grafik Penjualan 7 Hari Terakhir</h3>
             <div class="bg-gray-50 rounded-lg h-36 flex items-center justify-center border border-dashed border-gray-200">
                 <span class="text-[11px] text-gray-400">[Area Grafik Penjualan]</span>
@@ -142,7 +142,7 @@
             <h3 class="text-[13px] font-semibold text-gray-700">Kondisi Inventaris Keseluruhan</h3>
             <a href="{{ route('stok-obat') }}" class="text-[11px] text-[#009688] hover:underline font-medium">Detail Inventaris</a>
         </div>
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-[#e0f2f1] flex items-center justify-center">
                     <i class="fa-solid fa-circle-check text-[#009688] text-[16px]"></i>
@@ -174,7 +174,7 @@
     </div>
 
     {{-- ===== ROW 5: TOP 5 OBAT + AKTIVITAS ===== --}}
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Top 5 Obat Terlaris --}}
         <div class="stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-4">Top 5 Obat Terlaris</h3>
@@ -209,7 +209,7 @@
     </div>
 
     {{-- ===== ROW 6: KADALUWARSA + STOK RENDAH ===== --}}
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Obat Mendekati Kadaluwarsa --}}
         <div class="stat-card">
             <div class="flex items-center justify-between mb-3">
@@ -295,7 +295,7 @@
     </div>
 
     {{-- ===== ROW 8: AKSI CEPAT + KALENDER ===== --}}
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Aksi Cepat --}}
         <div class="stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-4">Aksi Cepat</h3>
