@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Manajemen Karyawan - MediFlow</title>
-    
+@extends('layouts.admin')
+
+@section('title', 'Manajemen Karyawan')
+
+@push('styles')
     <!-- Google Fonts: Quicksand -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,30 +22,6 @@
             --warning: #F59E0B;
             --danger: #EF4444;
             --border-color: #E2E8F0;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--background);
-            font-family: 'Quicksand', sans-serif;
-            color: var(--text-primary);
-            min-height: 100vh;
-            padding: 40px 24px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1120px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
         }
 
         /* Header Section */
@@ -480,9 +454,10 @@
             font-weight: 500;
         }
     </style>
-</head>
-<body>
-    <div class="container">
+@endpush
+
+@section('content')
+    <div class="space-y-6">
         <!-- Header Section -->
         <div class="header-section">
             <div class="header-title-area">
@@ -656,5 +631,4 @@
             @endif
         </div>
     </div>
-</body>
-</html>
+@endsection
