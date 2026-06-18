@@ -15,11 +15,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Seed Akun Admin & Kasir untuk Uji Coba kelompok
+        User::updateOrCreate([
+            'email' => 'admin@apotek.com'
+        ], [
+            'name' => 'Admin Apotek',
+            'password' => \Hash::make('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::updateOrCreate([
+            'email' => 'kasir@apotek.com'
+        ], [
+            'name' => 'Kasir Apotek',
+            'password' => \Hash::make('password'),
+            'role' => 'kasir',
+            'is_active' => true,
         ]);
     }
 }
