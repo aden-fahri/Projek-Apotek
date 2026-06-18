@@ -15,25 +15,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin test user
-        User::factory()->create([
-            'name' => 'Budi Santoso',
-            'email' => 'admin@mediflow.com',
-            'role' => 'admin',
-            'telepon' => '0812-3456-7890',
-            'alamat' => 'Jl. Kebon Jeruk No. 12, Jakarta',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@apotek.com'],
+            [
+                'name' => 'Administrator',
+                'password' => bcrypt('password'),
+                'role' => 'admin',
+                'telepon' => '081234567890',
+                'alamat' => 'Jl. Admin No. 1',
+                'is_active' => true,
+            ]
+        );
 
-        // Kasir test user
-        User::factory()->create([
-            'name' => 'Siti Aminah',
-            'email' => 'kasir@mediflow.com',
-            'role' => 'kasir',
-            'telepon' => '0856-7890-1234',
-            'alamat' => 'Jl. Mawar Indah No. 45, Bandung',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'kasir@apotek.com'],
+            [
+                'name' => 'Siti Kasir',
+                'password' => bcrypt('password'),
+                'role' => 'kasir',
+                'telepon' => '081234567891',
+                'alamat' => 'Jl. Kasir No. 2',
+                'is_active' => true,
+            ]
+        );
 
         // 40 random employees
         User::factory(40)->create();
