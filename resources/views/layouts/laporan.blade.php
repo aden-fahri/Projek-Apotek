@@ -7,8 +7,7 @@
     <title>@yield('title', 'Laporan') — Apotek</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-    {{-- Gunakan Vite untuk build CSS/JS --}}
-    @vite(['resources/css/laporan.css'])
+    <link rel="stylesheet" href="{{ asset('css/laporan.css') }}">
     @stack('styles')
 </head>
 <body>

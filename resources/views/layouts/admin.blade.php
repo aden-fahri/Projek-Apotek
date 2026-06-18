@@ -10,28 +10,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('css/admin-layout.css') }}">
     @stack('styles')
 </head>
-<body class="bg-[#f4f6f8] font-sans">
+<body>
 
-<div class="flex min-h-screen">
+<div class="layout-wrapper">
 
-    {{-- ===== SIDEBAR ADMIN (Light) ===== --}}
-    <aside class="sidebar-light flex-shrink-0" id="sidebar-admin">
+    {{-- ===== SIDEBAR ADMIN ===== --}}
+    <aside class="sidebar-light" id="sidebar-admin">
         {{-- Logo --}}
-        <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
-            <div class="w-8 h-8 bg-[#009688] rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-pills text-white text-sm"></i>
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                <i class="fa-solid fa-pills"></i>
             </div>
-            <div>
-                <p class="text-[13px] font-bold text-gray-800 leading-tight">MediFlow Pro</p>
-                <p class="text-[10px] text-gray-500 leading-tight">Pharmacy Management</p>
+            <div class="sidebar-logo-text">
+                <p class="sidebar-logo-title">MediFlow Pro</p>
+                <p class="sidebar-logo-subtitle">Pharmacy Management</p>
             </div>
         </div>
 
         {{-- Navigation --}}
-        <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+        <nav class="sidebar-nav">
             @php
                 $adminMenus = [
                     ['route' => 'dashboard.admin',    'icon' => 'fa-gauge-high',        'label' => 'Dashboard'],
@@ -49,46 +49,61 @@
 
             @foreach($adminMenus as $menu)
                 @php
-                    $isActive = request()->routeIs($menu['route']) || 
+                    $isActive = request()->routeIs($menu['route']) ||
                                 ($menu['route'] === 'supplier' && request()->routeIs('suppliers.*')) ||
                                 ($menu['route'] === 'pengguna' && request()->routeIs('employees.*'));
                 @endphp
-                <a href="{{ route($menu['route']) }}"
-                   class="{{ $isActive ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                    <i class="fa-solid {{ $menu['icon'] }} w-4 text-center {{ $isActive ? 'text-white' : 'text-gray-400' }} text-sm"></i>
+                <a href="{{ route($menu['route']) }}" class="{{ $isActive ? 'active' : '' }}">
+                    <i class="fa-solid {{ $menu['icon'] }} nav-icon"></i>
                     {{ $menu['label'] }}
                 </a>
             @endforeach
         </nav>
 
-        {{-- Bottom: Pengaturan --}}
-        <div class="px-3 py-3 border-t border-gray-100">
-            <a href="{{ route('pengaturan') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-gray-600 hover:bg-gray-100 transition-all">
-                <i class="fa-solid fa-gear w-4 text-center text-gray-400 text-sm"></i>
+        {{-- Bottom: Pengaturan & Keluar --}}
+        <div class="sidebar-bottom">
+            <a href="{{ route('pengaturan') }}">
+                <i class="fa-solid fa-gear nav-icon"></i>
                 Pengaturan
             </a>
+            <form method="POST" action="{{ route('logout') }}" style="margin-top: 4px;">
+                @csrf
+                <button type="submit" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; font-family: 'Inter', sans-serif;">
+                    <i class="fa-solid fa-right-from-bracket nav-icon" style="color: #9ca3af;"></i>
+                    Keluar
+                </button>
+            </form>
         </div>
     </aside>
 
     {{-- ===== MAIN AREA ===== --}}
-    <div class="main-with-sidebar flex-1 flex flex-col">
+    <div class="main-area">
 
-        {{-- Top Search Bar --}}
-        <header class="bg-white border-b border-gray-200 h-12 flex items-center px-6 sticky top-0 z-30">
-            <div class="flex-1 flex justify-center">
-                <div class="relative w-80">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                    <input type="text"
-                           id="search-admin"
-                           placeholder="Search..."
-                           class="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg text-[13px] text-gray-600 bg-gray-50 focus:outline-none focus:border-[#009688]">
+        {{-- Top Header --}}
+        <header class="admin-header">
+            {{-- Center: Page title --}}
+            <h2 style="font-size: 15px; font-weight: 600; color: #1f2937; margin: 0; position: absolute; left: 50%; transform: translateX(-50%);">
+                @yield('page-title', 'Dashboard')
+            </h2>
+
+            {{-- Right Items --}}
+            <div class="header-right">
+                <div class="header-search" style="width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-admin" placeholder="Search...">
+                </div>
+                <button class="icon-btn" title="Notifikasi">
+                    <i class="fa-regular fa-bell" style="font-size: 15px;"></i>
+                    <span class="badge-dot"></span>
+                </button>
+                <div class="avatar-circle" title="{{ auth()->user()->name }}">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                 </div>
             </div>
         </header>
 
         {{-- Page Content --}}
-        <main class="flex-1 p-5">
+        <main class="page-content">
             @yield('content')
         </main>
 
