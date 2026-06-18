@@ -173,6 +173,5 @@ class DashboardController extends Controller
         ];
 
         return view('pages.dashboard-admin', compact('data'));
->>>>>>> e56d070 (feat: Add dashboard admin and kasir views and layouts)
     }
 }
