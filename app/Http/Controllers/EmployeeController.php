@@ -44,4 +44,98 @@ class EmployeeController extends Controller
 
         return view('employees.index', compact('employees', 'totalKaryawan', 'totalAdmin', 'totalKasir'));
     }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('employees.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role'     => 'required|in:admin,kasir',
+            'telepon'  => 'nullable|string|max:20',
+            'alamat'   => 'nullable|string|max:500',
+        ], [
+            'name.required'      => 'Nama lengkap wajib diisi.',
+            'email.required'     => 'Email wajib diisi.',
+            'email.email'        => 'Format email tidak valid.',
+            'email.unique'       => 'Email ini sudah terdaftar dalam sistem. Gunakan email lain.',
+            'password.required'  => 'Password wajib diisi.',
+            'password.min'       => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'role.required'      => 'Role wajib dipilih.',
+            'role.in'            => 'Role harus Admin atau Kasir.',
+        ]);
+
+        User::create([
+            'name'      => $validated['name'],
+            'email'     => $validated['email'],
+            'password'  => $validated['password'],
+            'role'      => $validated['role'],
+            'telepon'   => $validated['telepon'] ?? null,
+            'alamat'    => $validated['alamat'] ?? null,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('employees.index')->with('success', 'Karyawan baru berhasil ditambahkan.');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(User $employee)
+    {
+        return view('employees.edit', compact('employee'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, User $employee)
+    {
+        $validated = $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $employee->id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'role'     => 'required|in:admin,kasir',
+            'telepon'  => 'nullable|string|max:20',
+            'alamat'   => 'nullable|string|max:500',
+        ], [
+            'name.required'      => 'Nama lengkap wajib diisi.',
+            'email.required'     => 'Email wajib diisi.',
+            'email.email'        => 'Format email tidak valid.',
+            'email.unique'       => 'Email ini sudah terdaftar dalam sistem. Gunakan email lain.',
+            'password.min'       => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'role.required'      => 'Role wajib dipilih.',
+            'role.in'            => 'Role harus Admin atau Kasir.',
+        ]);
+
+        $data = [
+            'name'    => $validated['name'],
+            'email'   => $validated['email'],
+            'role'    => $validated['role'],
+            'telepon' => $validated['telepon'] ?? null,
+            'alamat'  => $validated['alamat'] ?? null,
+        ];
+
+        // Only update password if filled
+        if (!empty($validated['password'])) {
+            $data['password'] = $validated['password'];
+        }
+
+        $employee->update($data);
+
+        return redirect()->route('employees.index')->with('success', 'Data karyawan berhasil diperbarui.');
+    }
 }

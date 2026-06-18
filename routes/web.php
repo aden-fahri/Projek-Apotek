@@ -64,7 +64,7 @@ Route::get('/golongan-obat', function () {
 })->name('golongan-obat');
 
 Route::get('/pengguna', function () {
-    return redirect()->route('dashboard');
+    return redirect()->route('employees.index');
 })->name('pengguna');
 
 Route::get('/pengaturan', function () {
