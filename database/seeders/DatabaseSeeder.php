@@ -15,11 +15,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Admin test user
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Budi Santoso',
+            'email' => 'admin@mediflow.com',
+            'role' => 'admin',
+            'telepon' => '0812-3456-7890',
+            'alamat' => 'Jl. Kebon Jeruk No. 12, Jakarta',
+            'is_active' => true,
         ]);
+
+        // Kasir test user
+        User::factory()->create([
+            'name' => 'Siti Aminah',
+            'email' => 'kasir@mediflow.com',
+            'role' => 'kasir',
+            'telepon' => '0856-7890-1234',
+            'alamat' => 'Jl. Mawar Indah No. 45, Bandung',
+            'is_active' => true,
+        ]);
+
+        // 40 random employees
+        User::factory(40)->create();
     }
 }
