@@ -64,7 +64,7 @@ Aplikasi web berbasis Laravel untuk **manajemen apotek** yang mencakup: pengelol
 ### 3.1 Autentikasi & Pengguna
 
 #### F-01: Login
-- Form login: email + password
+- Form login: nama + password
 - Redirect berdasarkan role (Admin → Dashboard Admin, Kasir → Dashboard Kasir)
 - Session-based authentication (Laravel default)
 - Tombol "Ingat Saya" (remember me)
