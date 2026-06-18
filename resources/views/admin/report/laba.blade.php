@@ -1,6 +1,10 @@
-@extends('layouts.laporan')
+﻿@extends('layouts.admin')
 
 @section('title', 'Laporan Laba')
+
+@push('styles')
+    @vite(['resources/css/laporan.css'])
+@endpush
 
 @section('content')
 {{-- ===== PAGE HEADER ===== --}}
@@ -12,12 +16,12 @@
     <div style="display:flex; gap:10px;">
         <button type="button" onclick="document.getElementById('filter-laba').classList.toggle('d-none')"
                 class="btn btn-outline" id="btn-filter-toggle">
-            ⊟ Filter
+            <i class="fa-solid fa-filter mr-1"></i> Filter
         </button>
         <a href="{{ route('admin.laporan.laba.export', request()->query()) }}"
            id="btn-export-laba"
            class="btn btn-excel">
-            ⬇ Export ke Excel
+            <i class="fa-solid fa-file-excel mr-1"></i> Export ke Excel
         </a>
     </div>
 </div>
@@ -29,7 +33,7 @@
             <div class="filter-field">
                 <label class="filter-label">Periode Tanggal</label>
                 <div class="filter-date-range">
-                    <span>📅</span>
+                    <span><i class="fa-regular fa-calendar text-gray-400"></i></span>
                     <input type="date" name="mulai_tanggal" id="mulai_laba"
                            value="{{ $mulai }}"
                            style="border:none; background:transparent; font-family:inherit; font-size:13.5px; outline:none;">
@@ -55,7 +59,7 @@
 
     {{-- LABA KOTOR --}}
     <div class="laba-card">
-        <div style="float:right; font-size:28px; color:rgba(13,148,136,0.2);">📈</div>
+        <div style="float:right; font-size:28px; color:rgba(13,148,136,0.2);"><i class="fa-solid fa-chart-line"></i></div>
         <div class="laba-card-label">Laba Kotor</div>
         <div class="laba-card-value">Rp {{ number_format($labaKotor, 0, ',', '.') }}</div>
         @if ($pctLabaKotor >= 0)
@@ -71,7 +75,7 @@
 
     {{-- LABA BERSIH --}}
     <div class="laba-card">
-        <div style="float:right; font-size:28px; color:rgba(13,148,136,0.2);">🧾</div>
+        <div style="float:right; font-size:28px; color:rgba(13,148,136,0.2);"><i class="fa-solid fa-file-invoice-dollar"></i></div>
         <div class="laba-card-label">Laba Bersih</div>
         <div class="laba-card-value">Rp {{ number_format($labaBersih, 0, ',', '.') }}</div>
         <div class="laba-badge" style="background:rgba(34,197,94,.1); color:#16a34a;">
@@ -90,7 +94,7 @@
     <div class="card-header">
         <span class="card-header-title">Rincian per Obat</span>
         <div class="table-search-wrap">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
             <form method="GET" action="{{ route('admin.laporan.laba') }}" id="form-cari-obat">
                 <input type="hidden" name="mulai_tanggal" value="{{ $mulai }}">
                 <input type="hidden" name="sampai_tanggal" value="{{ $sampai }}">
@@ -143,7 +147,7 @@
                 <tr>
                     <td colspan="5">
                         <div class="empty-state">
-                            <div class="empty-icon">📭</div>
+                            <div class="empty-icon text-gray-300" style="font-size: 48px; margin-bottom: 16px;"><i class="fa-solid fa-box-open"></i></div>
                             <p>Tidak ada data penjualan pada periode ini.</p>
                         </div>
                     </td>
@@ -162,3 +166,5 @@
     @endif
 </div>
 @endsection
+
+

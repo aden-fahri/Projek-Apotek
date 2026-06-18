@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Manajemen Karyawan')
 
@@ -13,8 +13,8 @@
             --primary: #0D9488;
             --primary-dark: #0F766E;
             --primary-light: #14B8A6;
-            --background: #F5F0E8;
-            --surface: #FAF8F4;
+            --background: #f4f6f8;
+            --surface: #FFFFFF;
             --white: #FFFFFF;
             --text-primary: #1E293B;
             --text-secondary: #64748B;
@@ -763,3 +763,5 @@
         });
     </script>
 @endpush
+
+

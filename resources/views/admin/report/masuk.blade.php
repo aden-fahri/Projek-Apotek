@@ -1,6 +1,10 @@
-@extends('layouts.laporan')
+﻿@extends('layouts.admin')
 
 @section('title', 'Laporan Masuk (Uang Masuk)')
+
+@push('styles')
+    @vite(['resources/css/laporan.css'])
+@endpush
 
 @section('content')
 {{-- ===== PAGE HEADER ===== --}}
@@ -17,7 +21,7 @@
     <a href="{{ route('admin.laporan.masuk.export', request()->query()) }}"
        id="btn-export-masuk"
        class="btn btn-excel">
-        ⬇ Export ke Excel
+        <i class="fa-solid fa-file-excel mr-1"></i> Export ke Excel
     </a>
 </div>
 
@@ -26,14 +30,14 @@
 
     {{-- FILTER --}}
     <div class="filter-section" style="margin-bottom: 0;">
-        <div class="filter-title">⊟ Filter Laporan</div>
+        <div class="filter-title"><i class="fa-solid fa-filter mr-1"></i> Filter Laporan</div>
         <form method="GET" action="{{ route('admin.laporan.masuk') }}" id="form-filter-masuk">
             <div class="filter-grid">
 
                 <div class="filter-field">
                     <label class="filter-label">Periode Tanggal</label>
                     <div class="filter-date-range" style="gap:6px;">
-                        <span>📅</span>
+                        <span><i class="fa-regular fa-calendar text-gray-400"></i></span>
                         <input type="date" name="mulai_tanggal" id="mulai_masuk"
                                value="{{ $mulai }}"
                                style="border:none; background:transparent; font-family:inherit; font-size:13.5px; outline:none;">
@@ -72,7 +76,7 @@
                     <label class="filter-label" style="visibility:hidden;">Aksi</label>
                     <div class="filter-actions">
                         <a href="{{ route('admin.laporan.masuk') }}" class="btn btn-outline" id="btn-reset-masuk">Reset</a>
-                        <button type="submit" class="btn btn-primary" id="btn-terapkan-masuk">⊟ Terapkan</button>
+                        <button type="submit" class="btn btn-primary" id="btn-terapkan-masuk"><i class="fa-solid fa-check mr-1"></i> Terapkan</button>
                     </div>
                 </div>
 
@@ -82,7 +86,7 @@
 
     {{-- SUMMARY CARD --}}
     <div class="summary-card">
-        <div class="summary-icon" style="margin-bottom:12px;">📋</div>
+        <div class="summary-icon text-[#0D9488]" style="margin-bottom:12px; font-size: 24px;"><i class="fa-solid fa-clipboard-list"></i></div>
         <div class="summary-label">TOTAL UANG MASUK</div>
         <div class="summary-value">Rp {{ number_format($totalMasuk, 0, ',', '.') }}</div>
         <div class="summary-change">
@@ -137,11 +141,11 @@
                     <td class="amount">Rp {{ number_format($item->total_amount, 0, ',', '.') }}</td>
                     <td>
                         @if ($item->status === 'selesai')
-                            <span class="badge badge-success">● Selesai</span>
+                            <span class="badge badge-success">● Selesai</span>
                         @elseif ($item->status === 'pending')
-                            <span class="badge badge-warning">● Menunggu</span>
+                            <span class="badge badge-warning">● Menunggu</span>
                         @else
-                            <span class="badge badge-danger">● Dibatalkan</span>
+                            <span class="badge badge-danger">● Dibatalkan</span>
                         @endif
                     </td>
                 </tr>
@@ -149,7 +153,7 @@
                 <tr>
                     <td colspan="6">
                         <div class="empty-state">
-                            <div class="empty-icon">📭</div>
+                            <div class="empty-icon text-gray-300" style="font-size: 48px; margin-bottom: 16px;"><i class="fa-solid fa-box-open"></i></div>
                             <p>Tidak ada data penjualan pada periode ini.</p>
                         </div>
                     </td>
@@ -168,3 +172,5 @@
     @endif
 </div>
 @endsection
+
+

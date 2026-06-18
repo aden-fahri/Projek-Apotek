@@ -37,30 +37,17 @@
                 <i class="fa-solid fa-gauge-high w-4 text-center {{ request()->routeIs('dashboard.kasir') ? 'text-white' : 'text-gray-400' }}"></i>
                 Dashboard
             </a>
-            <a href="{{ route('transaksi') }}"
-               class="{{ request()->routeIs('transaksi') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                <i class="fa-solid fa-cart-shopping w-4 text-center {{ request()->routeIs('transaksi') ? 'text-white' : 'text-gray-400' }}"></i>
-                Transaksi
-            </a>
-            <a href="{{ route('riwayat-transaksi') }}"
-               class="{{ request()->routeIs('riwayat-transaksi') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                <i class="fa-solid fa-clock-rotate-left w-4 text-center {{ request()->routeIs('riwayat-transaksi') ? 'text-white' : 'text-gray-400' }}"></i>
-                Riwayat Transaksi
-            </a>
-            <a href="{{ route('stok-obat') }}"
-               class="{{ request()->routeIs('stok-obat') ? 'bg-[#009688] text-white' : 'text-gray-600 hover:bg-gray-100' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150">
-                <i class="fa-solid fa-boxes-stacked w-4 text-center {{ request()->routeIs('stok-obat') ? 'text-white' : 'text-gray-400' }}"></i>
-                Stok Obat
-            </a>
         </nav>
-
-        {{-- Bottom: Pengaturan --}}
+ 
+        {{-- Bottom: Logout Only --}}
         <div class="px-3 py-3 border-t border-gray-100">
-            <a href="{{ route('pengaturan') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-gray-600 hover:bg-gray-100 transition-all">
-                <i class="fa-solid fa-gear w-4 text-center text-gray-400"></i>
-                Pengaturan
-            </a>
+            <form action="{{ route('logout') }}" method="POST" class="m-0">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-red-600 hover:bg-red-50 transition-all text-left">
+                    <i class="fa-solid fa-right-from-bracket w-4 text-center text-red-400 text-sm"></i>
+                    Logout
+                </button>
+            </form>
         </div>
     </aside>
 

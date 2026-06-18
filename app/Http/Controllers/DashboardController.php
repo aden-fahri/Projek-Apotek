@@ -7,11 +7,18 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     /**
-     * Default dashboard — redirects to Admin view as demo
+     * Default dashboard — redirects to Admin or Kasir view based on role
      */
     public function index()
     {
-        return redirect()->route('dashboard.admin');
+        if (auth()->check()) {
+            if (auth()->user()->role === 'admin') {
+                return redirect()->route('dashboard.admin');
+            } elseif (auth()->user()->role === 'kasir') {
+                return redirect()->route('dashboard.kasir');
+            }
+        }
+        return redirect()->route('login');
     }
 
     /**

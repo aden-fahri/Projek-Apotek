@@ -20,22 +20,24 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@apotek.com'],
             [
                 'name' => 'Administrator',
+                'username' => 'admin',
                 'password' => \Hash::make('password'),
                 'role' => 'admin',
-                'telepon' => '081234567890',
-                'alamat' => 'Jl. Admin No. 1',
+                'phone' => '081234567890',
+                'address' => 'Jl. Admin No. 1',
                 'is_active' => true,
             ]
         );
-
+ 
         User::updateOrCreate(
             ['email' => 'kasir@apotek.com'],
             [
                 'name' => 'Siti Kasir',
+                'username' => 'kasir',
                 'password' => \Hash::make('password'),
                 'role' => 'kasir',
-                'telepon' => '081234567891',
-                'alamat' => 'Jl. Kasir No. 2',
+                'phone' => '081234567891',
+                'address' => 'Jl. Kasir No. 2',
                 'is_active' => true,
             ]
         );
