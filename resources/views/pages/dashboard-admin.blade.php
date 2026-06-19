@@ -124,13 +124,13 @@
                 <h3 class="text-[13px] font-semibold text-gray-700">Grafik Penjualan 7 Hari Terakhir</h3>
                 <a href="{{ route('laporan') }}" class="text-[11px] text-[#009688] hover:underline">Detail</a>
             </div>
-            <canvas id="chartPenjualan" height="140"></canvas>
+            <canvas id="chartPenjualan" height="140" data-chart='@json($data['penjualanChart'])'></canvas>
         </div>
 
         {{-- Donut Chart Distribusi --}}
         <div class="stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-4">Distribusi Obat</h3>
-            <canvas id="chartDistribusi" height="140"></canvas>
+            <canvas id="chartDistribusi" height="140" data-chart='@json($data['distribusiObat'])'></canvas>
             <div class="mt-3 space-y-1.5">
                 @foreach($data['distribusiObat'] as $item)
                 <div class="flex items-center justify-between">
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ===== BAR CHART PENJUALAN =====
     const ctxBar = document.getElementById('chartPenjualan');
     if (ctxBar) {
-        const penjualanData = @json($data['penjualanChart']);
+        const penjualanData = JSON.parse(ctxBar.getAttribute('data-chart'));
         new Chart(ctxBar, {
             type: 'bar',
             data: {
@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ===== DONUT CHART DISTRIBUSI =====
     const ctxDonut = document.getElementById('chartDistribusi');
     if (ctxDonut) {
-        const distribusiData = @json($data['distribusiObat']);
+        const distribusiData = JSON.parse(ctxDonut.getAttribute('data-chart'));
         new Chart(ctxDonut, {
             type: 'doughnut',
             data: {
