@@ -39,14 +39,18 @@
                 <i class="fa-solid fa-gauge-high nav-icon"></i>
                 Dashboard
             </a>
+            <a href="{{ route('stok-obat') }}" class="{{ request()->routeIs('stok-obat') ? 'active' : '' }}">
+                <i class="fa-solid fa-boxes-stacked nav-icon"></i>
+                Stok Obat
+            </a>
         </nav>
 
         {{-- Bottom: Keluar Only --}}
         <div class="sidebar-bottom">
-            <form method="POST" action="{{ route('logout') }}" style="margin-top: 4px;">
+            <form method="POST" action="{{ route('logout') }}" id="logout-form" style="margin: 0;">
                 @csrf
-                <button type="submit" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; font-family: 'Inter', sans-serif;">
-                    <i class="fa-solid fa-right-from-bracket nav-icon" style="color: #9ca3af;"></i>
+                <button type="button" onclick="confirmLogout()" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif;">
+                    <i class="fa-solid fa-right-from-bracket nav-icon"></i>
                     Keluar
                 </button>
             </form>
@@ -86,6 +90,62 @@
 
     </div>
 </div>
+
+{{-- ===== LOGOUT CONFIRMATION MODAL ===== --}}
+<div id="logoutModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden bg-black/40 backdrop-blur-sm">
+    {{-- Modal Card --}}
+    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-sm w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="logoutCard">
+        {{-- Body --}}
+        <div class="p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-right-from-bracket text-red-500 text-[20px]"></i>
+            </div>
+            <h3 class="font-bold text-[16px] text-gray-800">Konfirmasi Keluar</h3>
+            <p class="text-[13px] text-gray-500 mt-2">Apakah Anda yakin ingin mengakhiri sesi dan keluar dari aplikasi?</p>
+        </div>
+        
+        {{-- Footer --}}
+        <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-end gap-2">
+            <button onclick="closeLogoutModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors cursor-pointer">
+                Batal
+            </button>
+            <button onclick="submitLogout()" class="bg-red-500 hover:bg-red-600 text-white font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors cursor-pointer">
+                Ya, Keluar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmLogout() {
+        const modal = document.getElementById('logoutModal');
+        const card = document.getElementById('logoutCard');
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        const card = document.getElementById('logoutCard');
+        
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
+    function submitLogout() {
+        document.getElementById('logout-form').submit();
+    }
+</script>
 
 @stack('scripts')
 </body>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InventoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -8,23 +9,33 @@ use Illuminate\Support\Facades\Route;
 | F-10: Purchase Order (Admin)
 | F-11: Lihat Stok Obat (Admin + Kasir)
 | F-14: Return Obat (Admin)
-| Dikerjakan oleh: Developer B (feature/inventory)
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth')->group(function () {
 
     // F-11: Stok Obat — bisa dilihat Admin & Kasir
-    Route::get('/stok-obat',        fn() => redirect()->route('dashboard'))->name('stok-obat');
+    Route::get('/stok-obat', [InventoryController::class, 'stockIndex'])->name('stok-obat');
 
-    // F-10: Purchase Order — Admin only
-    Route::get('/purchase-order',   fn() => redirect()->route('dashboard.admin'))
-        ->middleware('role:admin')
-        ->name('purchase-order');
+    // Admin only routes
+    Route::middleware('role:admin')->group(function () {
+        // F-10: Purchase Order (PO)
+        Route::get('/purchase-order', [InventoryController::class, 'poIndex'])->name('purchase-order');
+        Route::get('/purchase-order/create', [InventoryController::class, 'poCreate'])->name('purchase-order.create');
+        Route::post('/purchase-order', [InventoryController::class, 'poStore'])->name('purchase-order.store');
 
-    // F-14: Return Obat — Admin only
-    Route::get('/return-obat',      fn() => redirect()->route('dashboard.admin'))
-        ->middleware('role:admin')
-        ->name('return-obat');
+        // F-14: Return Obat
+        Route::get('/return-obat', [InventoryController::class, 'returnIndex'])->name('return-obat');
+        Route::get('/return-obat/create', [InventoryController::class, 'returnCreate'])->name('return-obat.create');
+        Route::post('/return-obat', [InventoryController::class, 'returnStore'])->name('return-obat.store');
+
+        // CRUD Medicines (Produk Obat)
+        Route::post('/stok-obat', [InventoryController::class, 'storeMedicine'])->name('medicines.store');
+        Route::put('/stok-obat/{id}', [InventoryController::class, 'updateMedicine'])->name('medicines.update');
+        Route::delete('/stok-obat/{id}', [InventoryController::class, 'destroyMedicine'])->name('medicines.destroy');
+    });
+
+    // API helper for dynamic JavaScript dropdown
+    Route::get('/api/available-stocks', [InventoryController::class, 'getAvailableStocks'])->name('api.available-stocks');
 
 });
