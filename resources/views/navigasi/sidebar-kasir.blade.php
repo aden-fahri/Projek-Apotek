@@ -26,6 +26,14 @@
             <i class="fa-solid fa-box nav-icon"></i>
             Stok Obat
         </a>
+        <a href="{{ route('kasir') }}" class="{{ request()->routeIs('kasir') ? 'active' : '' }}">
+            <i class="fa-solid fa-calculator nav-icon"></i>
+            Sistem Kasir
+        </a>
+        <a href="{{ route('riwayat-transaksi') }}" class="{{ request()->routeIs('riwayat-transaksi') ? 'active' : '' }}">
+            <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+            Riwayat Transaksi
+        </a>
     </nav>
 
     {{-- Bottom: Keluar Only --}}

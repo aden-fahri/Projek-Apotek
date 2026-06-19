@@ -6,6 +6,7 @@
 <style>
     .setting-container {
         width: 100%;
+        margin: 0 auto;
     }
     .setting-card {
         background: #fff;

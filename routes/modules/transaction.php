@@ -11,14 +11,23 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+use App\Http\Controllers\TransactionController;
+
 Route::middleware('auth')->group(function () {
 
     // F-15: Kasir POS — Kasir only
-    Route::get('/transaksi',        fn() => redirect()->route('dashboard.kasir'))
-        ->middleware('role:kasir')
-        ->name('transaksi');
+    Route::middleware('role:kasir')->group(function () {
+        Route::get('/kasir', [TransactionController::class, 'pos'])->name('kasir');
+        Route::get('/kasir/search-medicine', [TransactionController::class, 'searchMedicine'])->name('kasir.search');
+        Route::post('/kasir/store', [TransactionController::class, 'store'])->name('kasir.store');
+    });
 
     // F-16: Riwayat Transaksi — Admin + Kasir
-    Route::get('/riwayat-transaksi', fn() => redirect()->route('dashboard'))->name('riwayat-transaksi');
+    Route::get('/riwayat-transaksi', [TransactionController::class, 'history'])->name('riwayat-transaksi');
+    
+    // F-16: Batal Transaksi — Admin only
+    Route::post('/riwayat-transaksi/{id}/cancel', [TransactionController::class, 'cancelTransaction'])
+        ->middleware('role:admin')
+        ->name('riwayat-transaksi.cancel');
 
 });
