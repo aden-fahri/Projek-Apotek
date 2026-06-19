@@ -75,7 +75,7 @@ class LaporanKeluarExport implements
     public function columnFormats(): array
     {
         return [
-            'F' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total Pembelian
+            'F' => '"Rp "* #,##0_-', // Total Pembelian
         ];
     }
 

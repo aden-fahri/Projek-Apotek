@@ -171,7 +171,6 @@ class TransactionController extends Controller
                     'medicine_id' => $data['medicine']->id,
                     'quantity' => $data['quantity'],
                     'price' => $data['price'],
-                    'purchase_price' => $data['purchase_price'],
                     'subtotal' => $data['subtotal'],
                 ]);
 

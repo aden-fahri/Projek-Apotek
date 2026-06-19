@@ -98,11 +98,11 @@ class LaporanLabaExport implements
     public function columnFormats(): array
     {
         return [
-            'F' => NumberFormat::FORMAT_ACCOUNTING_IDR, // HPP Rata-rata
-            'G' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Harga Jual Rata-rata
-            'H' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total Penjualan
-            'I' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total HPP
-            'J' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total Laba
+            'F' => '"Rp "* #,##0_-', // HPP Rata-rata
+            'G' => '"Rp "* #,##0_-', // Harga Jual Rata-rata
+            'H' => '"Rp "* #,##0_-', // Total Penjualan
+            'I' => '"Rp "* #,##0_-', // Total HPP
+            'J' => '"Rp "* #,##0_-', // Total Laba
         ];
     }
 
