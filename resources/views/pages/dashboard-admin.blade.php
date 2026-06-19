@@ -157,7 +157,7 @@
                         <span class="text-[11px] font-semibold text-[#009688]">{{ $data['inventarisAman'] }}%</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-[#009688] h-2 rounded-full" style="width:{{ $data['inventarisAman'] }}%"></div>
+                        <div class="bg-[#009688] h-2 rounded-full" style="--w-val: {{ $data['inventarisAman'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
                 <div>
@@ -166,7 +166,7 @@
                         <span class="text-[11px] font-semibold text-orange-500">{{ $data['inventarisMenengah'] }}%</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-orange-400 h-2 rounded-full" style="width:{{ $data['inventarisMenengah'] }}%"></div>
+                        <div class="bg-orange-400 h-2 rounded-full" style="--w-val: {{ $data['inventarisMenengah'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
                 <div>
@@ -175,7 +175,7 @@
                         <span class="text-[11px] font-semibold text-red-500">{{ $data['inventarisRendah'] }}%</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-red-500 h-2 rounded-full" style="width:{{ $data['inventarisRendah'] }}%"></div>
+                        <div class="bg-red-500 h-2 rounded-full" style="--w-val: {{ $data['inventarisRendah'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
             </div>

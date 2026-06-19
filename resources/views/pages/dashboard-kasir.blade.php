@@ -259,7 +259,7 @@
                         <span class="text-[11px] text-red-500 font-medium">Sisa {{ $obat['sisa'] }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-1.5">
-                        <div class="bg-red-500 h-1.5 rounded-full" style="width: {{ $obat['persen'] }}%"></div>
+                        <div class="bg-red-500 h-1.5 rounded-full" style="--w-val: {{ $obat['persen'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
                 @endforeach
