@@ -36,7 +36,7 @@ class Medicine extends Model
     // Relasi ke golongan
     public function medicineGroup()
     {
-        return $this->belongsTo(MedicineGroup::class);
+        return $this->belongsTo(MedicineGroup::class, 'group_id');
     }
 
     // Relasi ke satuan
@@ -49,5 +49,11 @@ class Medicine extends Model
     public function transactionDetails()
     {
         return $this->hasMany(TransactionDetail::class);
+    }
+
+    // Relasi ke stok obat
+    public function stocks()
+    {
+        return $this->hasMany(MedicineStock::class);
     }
 }

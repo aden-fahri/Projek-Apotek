@@ -1,9 +1,4 @@
 <header class="admin-header">
-    {{-- Center: Page title --}}
-    <h2 style="font-size: 15px; font-weight: 600; color: #1f2937; margin: 0; position: absolute; left: 50%; transform: translateX(-50%);">
-        @yield('page-title', 'Dashboard')
-    </h2>
-
     {{-- Right Items --}}
     <div class="header-right">
         <div class="header-search" style="width: 200px;">

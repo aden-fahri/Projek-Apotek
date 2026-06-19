@@ -9,7 +9,7 @@ class StockReturnDetail extends Model
     protected $fillable = [
         'stock_return_id',
         'medicine_id',
-        'batch_number',
+        'medicine_stock_id',
         'quantity',
         'purchase_price',
         'subtotal',
@@ -30,5 +30,11 @@ class StockReturnDetail extends Model
     public function medicine()
     {
         return $this->belongsTo(Medicine::class);
+    }
+
+    // Relasi ke stok obat (batch)
+    public function medicineStock()
+    {
+        return $this->belongsTo(MedicineStock::class, 'medicine_stock_id');
     }
 }
