@@ -225,6 +225,46 @@ class DashboardController extends Controller
             ];
         }
 
+        // Chart Penjualan 7 Hari Terakhir (Kasir ini)
+        $penjualanChart = [];
+        $dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = today()->subDays($i);
+            $val = DB::table('transactions')
+                ->where('user_id', $userId)
+                ->whereDate('transaction_date', $date)
+                ->where('status', 'completed')
+                ->sum('grand_total');
+            $penjualanChart[] = [
+                'hari' => $dayNames[$date->dayOfWeek],
+                'nilai' => (float)$val
+            ];
+        }
+
+        // Donut Chart Distribusi Obat per Kategori
+        $categoriesCount = DB::table('v_medicine_stock_summary')
+            ->select('category_name', DB::raw('count(*) as count'))
+            ->groupBy('category_name')
+            ->orderBy('count', 'desc')
+            ->get();
+        $totalMedCount = $categoriesCount->sum('count');
+        $distribusiObat = [];
+        $colors = ['#009688', '#26a69a', '#80cbc4', '#b2dfdb', '#e0f2f1'];
+        $idx = 0;
+        foreach ($categoriesCount as $cat) {
+            if ($totalMedCount > 0) {
+                $distribusiObat[] = [
+                    'label' => $cat->category_name ?: 'Lainnya',
+                    'persen' => round(($cat->count / $totalMedCount) * 100),
+                    'warna' => $colors[$idx % count($colors)]
+                ];
+                $idx++;
+            }
+        }
+        if (empty($distribusiObat)) {
+            $distribusiObat[] = ['label' => 'Belum ada', 'persen' => 100, 'warna' => '#009688'];
+        }
+
         $data = [
             'role'                 => 'kasir',
             'userName'             => Auth::user()->name,
@@ -250,6 +290,8 @@ class DashboardController extends Controller
             'obatKadaluwarsa'      => $obatKadaluwarsa,
             'obatStokRendah'       => $obatStokRendah,
             'transaksi'            => $transaksi,
+            'penjualanChart'       => $penjualanChart,
+            'distribusiObat'       => $distribusiObat,
         ];
 
         return view('pages.dashboard-kasir', compact('data'));
@@ -460,11 +502,39 @@ class DashboardController extends Controller
             ->whereYear('transaction_date', now()->year)
             ->sum('grand_total');
 
+        $prevMonthPenjualan = DB::table('transactions')
+            ->where('status', 'completed')
+            ->whereMonth('transaction_date', now()->subMonth()->month)
+            ->whereYear('transaction_date', now()->subMonth()->year)
+            ->sum('grand_total');
+        if ($prevMonthPenjualan > 0) {
+            $diffPenjualan = (($footerPenjualan - $prevMonthPenjualan) / $prevMonthPenjualan) * 100;
+            $footerPenjualanTrend = round(abs($diffPenjualan), 1) . '%';
+            $footerPenjualanTrendUp = $diffPenjualan >= 0;
+        } else {
+            $footerPenjualanTrend = '0.0%';
+            $footerPenjualanTrendUp = true;
+        }
+
         $footerPembelian = DB::table('purchase_orders')
             ->where('status', 'completed')
             ->whereMonth('order_date', now()->month)
             ->whereYear('order_date', now()->year)
             ->sum('total_amount');
+
+        $prevMonthPembelian = DB::table('purchase_orders')
+            ->where('status', 'completed')
+            ->whereMonth('order_date', now()->subMonth()->month)
+            ->whereYear('order_date', now()->subMonth()->year)
+            ->sum('total_amount');
+        if ($prevMonthPembelian > 0) {
+            $diffPembelian = (($footerPembelian - $prevMonthPembelian) / $prevMonthPembelian) * 100;
+            $footerPembelianTrend = round(abs($diffPembelian), 1) . '%';
+            $footerPembelianTrendUp = $diffPembelian >= 0;
+        } else {
+            $footerPembelianTrend = '0.0%';
+            $footerPembelianTrendUp = true;
+        }
 
         $footerPertumbuhan = DB::table('transactions')
             ->where('status', 'completed')
@@ -472,6 +542,21 @@ class DashboardController extends Controller
             ->whereYear('transaction_date', now()->year)
             ->distinct()
             ->count('customer_name');
+
+        $prevMonthPertumbuhan = DB::table('transactions')
+            ->where('status', 'completed')
+            ->whereMonth('transaction_date', now()->subMonth()->month)
+            ->whereYear('transaction_date', now()->subMonth()->year)
+            ->distinct()
+            ->count('customer_name');
+        if ($prevMonthPertumbuhan > 0) {
+            $diffPertumbuhan = (($footerPertumbuhan - $prevMonthPertumbuhan) / $prevMonthPertumbuhan) * 100;
+            $footerPertumbuhanTrend = round(abs($diffPertumbuhan), 1) . '%';
+            $footerPertumbuhanTrendUp = $diffPertumbuhan >= 0;
+        } else {
+            $footerPertumbuhanTrend = '0.0%';
+            $footerPertumbuhanTrendUp = true;
+        }
 
         $data = [
             'role'              => 'admin',
@@ -499,8 +584,16 @@ class DashboardController extends Controller
             'aktivitas'        => $aktivitas,
             'transaksi'        => $transaksi,
             'footerPenjualan'  => $footerPenjualan >= 1000000 ? 'Rp ' . round($footerPenjualan / 1000000, 1) . 'jt' : 'Rp ' . number_format($footerPenjualan / 1000, 0) . 'rb',
+            'footerPenjualanTrend' => $footerPenjualanTrend,
+            'footerPenjualanTrendUp' => $footerPenjualanTrendUp,
             'footerPembelian'  => $footerPembelian >= 1000000 ? 'Rp ' . round($footerPembelian / 1000000, 1) . 'jt' : 'Rp ' . number_format($footerPembelian / 1000, 0) . 'rb',
+            'footerPembelianTrend' => $footerPembelianTrend,
+            'footerPembelianTrendUp' => $footerPembelianTrendUp,
             'footerPertumbuhan' => "{$footerPertumbuhan} Transaksi",
+            'footerPertumbuhanTrend' => $footerPertumbuhanTrend,
+            'footerPertumbuhanTrendUp' => $footerPertumbuhanTrendUp,
+            'lowStockCount'     => $lowStockCount,
+            'mendekatiKadaluwarsa' => DB::table('v_expiring_medicines')->count(),
         ];
 
         return view('pages.dashboard-admin', compact('data'));

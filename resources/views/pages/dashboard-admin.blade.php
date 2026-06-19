@@ -244,7 +244,7 @@
                 <i class="fa-solid fa-triangle-exclamation text-orange-500"></i>
                 <h3 class="text-[13px] font-semibold text-orange-800">Obat Mendekati Kadaluwarsa</h3>
             </div>
-            <p class="text-[12px] text-orange-700">Terdapat 5 item obat yang akan kadaluwarsa dalam 30 hari ke depan. Harap segera lakukan penjualan.</p>
+            <p class="text-[12px] text-orange-700">Terdapat {{ $data['mendekatiKadaluwarsa'] }} item obat yang akan kadaluwarsa dalam 30 hari ke depan. Harap segera lakukan penjualan.</p>
             <a href="{{ route('stok-obat') }}" class="text-[11px] text-[#009688] font-semibold mt-2 inline-block hover:underline">Lihat Detail</a>
         </div>
 
@@ -254,7 +254,7 @@
                 <i class="fa-solid fa-bell text-gray-500"></i>
                 <h3 class="text-[13px] font-semibold text-gray-700">Peringatan Stok Rendah</h3>
             </div>
-            <p class="text-[12px] text-gray-600">12 item obat saat ini berada di bawah batas stok minimum. Segera lakukan pemesanan ke supplier.</p>
+            <p class="text-[12px] text-gray-600">{{ $data['lowStockCount'] }} item obat saat ini berada di bawah batas stok minimum. Segera lakukan pemesanan ke supplier.</p>
             <a href="{{ route('supplier') }}" class="text-[11px] text-[#009688] font-semibold mt-2 inline-block hover:underline">Buat PO Baru</a>
         </div>
     </div>
@@ -357,8 +357,8 @@
                 <p class="text-[10px] text-gray-400 uppercase tracking-wide">Total Penjualan (Bln Ini)</p>
                 <div class="flex items-center gap-2 mt-1">
                     <p class="text-[18px] font-bold text-gray-800">{{ $data['footerPenjualan'] }}</p>
-                    <span class="text-[10px] text-[#10b981] flex items-center gap-0.5">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 12.5%
+                    <span class="text-[10px] {{ $data['footerPenjualanTrendUp'] ? 'text-[#10b981]' : 'text-red-500' }} flex items-center gap-0.5">
+                        <i class="fa-solid {{ $data['footerPenjualanTrendUp'] ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i> {{ $data['footerPenjualanTrend'] }}
                     </span>
                 </div>
                 <p class="text-[10px] text-gray-400">vs Bulan lalu</p>
@@ -367,8 +367,8 @@
                 <p class="text-[10px] text-gray-400 uppercase tracking-wide">Total Pembelian (Bln Ini)</p>
                 <div class="flex items-center gap-2 mt-1">
                     <p class="text-[18px] font-bold text-gray-800">{{ $data['footerPembelian'] }}</p>
-                    <span class="text-[10px] text-red-500 flex items-center gap-0.5">
-                        <i class="fa-solid fa-arrow-trend-down"></i> 4.2%
+                    <span class="text-[10px] {{ $data['footerPembelianTrendUp'] ? 'text-red-500' : 'text-[#10b981]' }} flex items-center gap-0.5">
+                        <i class="fa-solid {{ $data['footerPembelianTrendUp'] ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i> {{ $data['footerPembelianTrend'] }}
                     </span>
                 </div>
                 <p class="text-[10px] text-gray-400">vs Bulan lalu</p>
@@ -377,8 +377,8 @@
                 <p class="text-[10px] text-gray-400 uppercase tracking-wide">Pertumbuhan Penjualan</p>
                 <div class="flex items-center gap-2 mt-1">
                     <p class="text-[18px] font-bold text-gray-800">{{ $data['footerPertumbuhan'] }}</p>
-                    <span class="text-[10px] text-[#10b981] flex items-center gap-0.5">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.4%
+                    <span class="text-[10px] {{ $data['footerPertumbuhanTrendUp'] ? 'text-[#10b981]' : 'text-red-500' }} flex items-center gap-0.5">
+                        <i class="fa-solid {{ $data['footerPertumbuhanTrendUp'] ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i> {{ $data['footerPertumbuhanTrend'] }}
                     </span>
                 </div>
                 <p class="text-[10px] text-gray-400">vs Bulan lalu</p>
