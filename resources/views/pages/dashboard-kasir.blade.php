@@ -123,15 +123,22 @@
         {{-- Chart Penjualan --}}
         <div class="lg:col-span-2 stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-3">Grafik Penjualan 7 Hari Terakhir</h3>
-            <div class="bg-gray-50 rounded-lg h-36 flex items-center justify-center border border-dashed border-gray-200">
-                <span class="text-[11px] text-gray-400">[Area Grafik Penjualan]</span>
-            </div>
+            <canvas id="chartPenjualan" height="140" data-chart='@json($data['penjualanChart'])'></canvas>
         </div>
         {{-- Distribusi Obat --}}
         <div class="stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-3">Distribusi Obat</h3>
-            <div class="bg-gray-50 rounded-lg h-36 flex items-center justify-center border border-dashed border-gray-200">
-                <span class="text-[11px] text-gray-400">[Area Chart Distribusi]</span>
+            <canvas id="chartDistribusi" height="140" data-chart='@json($data['distribusiObat'])'></canvas>
+            <div class="mt-3 space-y-1.5">
+                @foreach($data['distribusiObat'] as $item)
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-sm" style="--bg-color: {{ $item['warna'] }}; background-color: var(--bg-color);"></div>
+                        <span class="text-[11px] text-gray-600">{{ $item['label'] }}</span>
+                    </div>
+                    <span class="text-[11px] font-semibold text-gray-700">{{ $item['persen'] }}%</span>
+                </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -252,7 +259,7 @@
                         <span class="text-[11px] text-red-500 font-medium">Sisa {{ $obat['sisa'] }}</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-1.5">
-                        <div class="bg-red-500 h-1.5 rounded-full" style="width: {{ $obat['persen'] }}%"></div>
+                        <div class="bg-red-500 h-1.5 rounded-full" style="--w-val: {{ $obat['persen'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
                 @endforeach
@@ -318,11 +325,98 @@
         {{-- Kalender Operasional --}}
         <div class="stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-3">Kalender Operasional</h3>
-            <div class="bg-gray-50 rounded-lg h-24 flex items-center justify-center border border-dashed border-gray-200">
-                <span class="text-[11px] text-gray-400">[Widget Kalender]</span>
+            @php
+                $today = now();
+                $daysInMonth = $today->daysInMonth;
+                $firstDay = \Carbon\Carbon::create($today->year, $today->month, 1)->dayOfWeek;
+                $dayNames = ['M','S','S','R','K','J','S'];
+            @endphp
+            <div class="text-center">
+                <p class="text-[11px] font-semibold text-gray-600 mb-2">{{ $today->translatedFormat('F Y') }}</p>
+                <div class="grid grid-cols-7 gap-0.5 text-[10px]">
+                    @foreach($dayNames as $d)
+                        <div class="text-center text-gray-400 font-medium py-1">{{ $d }}</div>
+                    @endforeach
+                    @for($i = 0; $i < $firstDay; $i++)
+                        <div></div>
+                    @endfor
+                    @for($day = 1; $day <= $daysInMonth; $day++)
+                        <div class="text-center py-1 rounded {{ $day == $today->day ? 'bg-[#009688] text-white font-bold' : 'text-gray-600 hover:bg-gray-100' }}">
+                            {{ $day }}
+                        </div>
+                    @endfor
+                </div>
             </div>
         </div>
     </div>
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ===== BAR CHART PENJUALAN =====
+    const ctxBar = document.getElementById('chartPenjualan');
+    if (ctxBar) {
+        const penjualanData = JSON.parse(ctxBar.getAttribute('data-chart'));
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: penjualanData.map(d => d.hari),
+                datasets: [{
+                    data: penjualanData.map(d => d.nilai),
+                    backgroundColor: penjualanData.map((d, i) =>
+                        i === penjualanData.length - 1 ? '#009688' : '#b2dfdb'
+                    ),
+                    borderRadius: 5,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            font: { size: 10 },
+                            color: '#9ca3af',
+                            callback: v => 'Rp ' + (v/1000).toFixed(0) + 'k'
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10 }, color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ===== DONUT CHART DISTRIBUSI =====
+    const ctxDonut = document.getElementById('chartDistribusi');
+    if (ctxDonut) {
+        const distribusiData = JSON.parse(ctxDonut.getAttribute('data-chart'));
+        new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: distribusiData.map(d => d.label),
+                datasets: [{
+                    data: distribusiData.map(d => d.persen),
+                    backgroundColor: distribusiData.map(d => d.warna),
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '70%',
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+});
+</script>
+@endpush
