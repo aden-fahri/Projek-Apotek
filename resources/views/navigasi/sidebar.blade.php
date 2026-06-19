@@ -17,6 +17,7 @@
 
     {{-- Navigation --}}
     <nav class="sidebar-nav">
+        @php
             $sidebarItems = [
                 ['type' => 'link', 'route' => 'dashboard.admin', 'icon' => 'fa-bolt-lightning', 'label' => 'Dashboard'],
                 
