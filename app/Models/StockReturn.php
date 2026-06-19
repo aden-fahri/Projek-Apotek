@@ -9,6 +9,7 @@ class StockReturn extends Model
     protected $fillable = [
         'return_number',
         'supplier_id',
+        'user_id',
         'return_date',
         'reason',
         'total_amount',
