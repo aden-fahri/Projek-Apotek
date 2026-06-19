@@ -267,12 +267,12 @@
 </div>
 
 {{-- ===== DETAIL BATCH MODAL ===== --}}
-<div id="batchModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+<div id="batchModal" class="fixed inset-0 z-50 flex items-center justify-center hidden" style="left: 220px; z-index: 9999;">
     {{-- Backdrop --}}
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
     
     {{-- Modal Card --}}
-    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="modalCard">
+    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="modalCard" style="max-width: 500px; width: 100%;">
         {{-- Header --}}
         <div class="bg-teal-700 p-4 text-white flex justify-between items-center">
             <div>
@@ -318,12 +318,12 @@
 </div>
 
 {{-- ===== TAMBAH PRODUK OBAT MODAL ===== --}}
-<div id="addMedicineModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+<div id="addMedicineModal" class="fixed inset-0 z-50 flex items-center justify-center hidden" style="left: 220px; z-index: 9999;">
     {{-- Backdrop --}}
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeAddMedicineModal()"></div>
     
     {{-- Modal Card --}}
-    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="addMedicineCard">
+    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="addMedicineCard" style="max-width: 600px; width: 100%;">
         {{-- Header --}}
         <div class="bg-teal-700 p-4 text-white flex justify-between items-center">
             <div>
@@ -453,12 +453,12 @@
 </div>
 
 {{-- ===== EDIT PRODUK OBAT MODAL ===== --}}
-<div id="editMedicineModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+<div id="editMedicineModal" class="fixed inset-0 z-50 flex items-center justify-center hidden" style="left: 220px; z-index: 9999;">
     {{-- Backdrop --}}
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeEditMedicineModal()"></div>
     
     {{-- Modal Card --}}
-    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="editMedicineCard">
+    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="editMedicineCard" style="max-width: 600px; width: 100%;">
         {{-- Header --}}
         <div class="bg-teal-700 p-4 text-white flex justify-between items-center">
             <div>
@@ -590,12 +590,12 @@
 </div>
 
 {{-- ===== TAMBAH KATEGORI BARU MODAL ===== --}}
-<div id="addCategoryModal" class="fixed inset-0 z-[60] flex items-center justify-center hidden">
+<div id="addCategoryModal" class="fixed inset-0 z-[60] flex items-center justify-center hidden" style="left: 220px; z-index: 10000;">
     {{-- Backdrop --}}
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeAddCategoryModal()"></div>
     
     {{-- Modal Card --}}
-    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-md w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="addCategoryCard">
+    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-md w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="addCategoryCard" style="max-width: 500px; width: 100%;">
         {{-- Header --}}
         <div class="bg-teal-700 p-4 text-white flex justify-between items-center">
             <div>
