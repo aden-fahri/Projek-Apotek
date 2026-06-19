@@ -133,7 +133,7 @@
                 @foreach($data['distribusiObat'] as $item)
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="w-2.5 h-2.5 rounded-sm" style="background:{{ $item['warna'] }}"></div>
+                        <div class="w-2.5 h-2.5 rounded-sm" style="--bg-color: {{ $item['warna'] }}; background-color: var(--bg-color);"></div>
                         <span class="text-[11px] text-gray-600">{{ $item['label'] }}</span>
                     </div>
                     <span class="text-[11px] font-semibold text-gray-700">{{ $item['persen'] }}%</span>
