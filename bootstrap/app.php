@@ -11,6 +11,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Automatically login users based on path
+        $middleware->web(append: [
+            \App\Http\Middleware\AutoLogin::class,
+        ]);
+
+        // Ensure AutoLogin runs after session start but before auth middleware
+        $middleware->priority([
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \App\Http\Middleware\AutoLogin::class,
+            \Illuminate\Auth\Middleware\Authenticate::class,
+        ]);
+
         // Daftarkan middleware role untuk pembatasan akses berdasarkan role
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
