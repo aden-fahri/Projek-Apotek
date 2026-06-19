@@ -8,11 +8,7 @@
     {{-- ===== HERO BANNER ===== --}}
     <div class="rounded-xl p-6" style="background: linear-gradient(135deg, #009688 0%, #00695c 100%);">
         <h2 class="text-[20px] font-bold text-white">Selamat Datang, {{ $data['userName'] }}</h2>
-        <p class="text-[13px] text-white/80 mt-1 mb-4">Ringkasan aktivitas apotek hari ini. Pantau stok dan penjualan untuk menjaga kelancaran operasional.</p>
-        <button class="bg-white/20 hover:bg-white/30 text-white text-[12px] font-semibold px-4 py-2 rounded-lg border border-white/30 transition-colors flex items-center gap-2">
-            <i class="fa-solid fa-plus text-[11px]"></i>
-            Transaksi Baru
-        </button>
+        <p class="text-[13px] text-white/80 mt-1">Ringkasan aktivitas apotek hari ini. Pantau stok dan penjualan untuk menjaga kelancaran operasional.</p>
     </div>
 
     {{-- ===== ROW 1: 3 STAT CARDS BESAR ===== --}}
