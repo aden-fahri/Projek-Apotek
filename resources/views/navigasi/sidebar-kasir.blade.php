@@ -22,13 +22,21 @@
             <i class="fa-solid fa-gauge-high nav-icon"></i>
             Dashboard
         </a>
+        <a href="{{ route('kasir') }}" class="{{ request()->routeIs('kasir') ? 'active' : '' }}">
+            <i class="fa-solid fa-calculator nav-icon"></i>
+            Sistem Kasir
+        </a>
+        <a href="{{ route('riwayat-transaksi') }}" class="{{ request()->routeIs('riwayat-transaksi') ? 'active' : '' }}">
+            <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+            Riwayat Transaksi
+        </a>
     </nav>
 
     {{-- Bottom: Keluar Only --}}
     <div class="sidebar-bottom">
-        <form method="POST" action="{{ route('logout') }}" style="margin-top: 4px;">
+        <form method="POST" action="{{ route('logout') }}" id="logout-form" style="margin-top: 4px;">
             @csrf
-            <button type="submit" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; font-family: 'Inter', sans-serif;">
+            <button type="button" onclick="confirmLogout()" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; font-family: 'Inter', sans-serif;">
                 <i class="fa-solid fa-right-from-bracket nav-icon" style="color: #9ca3af;"></i>
                 Keluar
             </button>

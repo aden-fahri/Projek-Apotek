@@ -7,16 +7,18 @@
 
 @theme {
     --font-sans: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
-    --color-primary: #009688;
-    --color-primary-dark: #00796b;
-    --color-primary-light: #b2dfdb;
-    --color-sidebar-dark: #1a3a30;
-    --color-sidebar-darker: #132e25;
-    --color-bg: #f4f6f8;
-    --color-card: #ffffff;
-    --color-danger: #ef4444;
-    --color-warning: #f97316;
-    --color-success: #10b981;
+    --color-primary: #0D9488;
+    --color-primary-dark: #0F766E;
+    --color-primary-light: #14B8A6;
+    --color-sidebar-dark: #0F766E;
+    --color-sidebar-darker: #0D9488;
+    --color-bg-sand: #F5F0E8;
+    --color-surface-sand: #FAF8F4;
+    --color-text-primary: #1E293B;
+    --color-text-secondary: #64748B;
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
 }
 
 @layer base {
