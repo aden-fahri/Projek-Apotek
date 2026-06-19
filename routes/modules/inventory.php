@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/stok-obat', [InventoryController::class, 'storeMedicine'])->name('medicines.store');
         Route::put('/stok-obat/{id}', [InventoryController::class, 'updateMedicine'])->name('medicines.update');
         Route::delete('/stok-obat/{id}', [InventoryController::class, 'destroyMedicine'])->name('medicines.destroy');
+        Route::post('/stok-obat/kategori', [InventoryController::class, 'storeCategory'])->name('categories.store');
     });
 
     // API helper for dynamic JavaScript dropdown
