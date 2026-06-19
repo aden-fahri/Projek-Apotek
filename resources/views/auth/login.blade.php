@@ -79,7 +79,7 @@
             </div>
             @endif
 
-            <form action="{{ url('/login') }}" method="POST">
+            <form action="{{ url('/login') }}" method="POST" autocomplete="off">
                 @csrf
 
                 <div class="form-group">
@@ -91,6 +91,7 @@
                         class="form-input @error('username') border-red-500 @enderror"
                         placeholder="Masukkan username"
                         value="{{ old('username') }}"
+                        autocomplete="off"
                         required
                         autofocus>
                 </div>
@@ -105,6 +106,7 @@
                             class="form-input @error('password') border-red-500 @enderror"
                             placeholder="Password"
                             style="padding-right: 44px;"
+                            autocomplete="new-password"
                             required>
                         <button type="button" id="togglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; padding: 4px; outline: none;">
                             <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
