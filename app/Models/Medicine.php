@@ -10,7 +10,7 @@ class Medicine extends Model
         'code',
         'name',
         'category_id',
-        'medicine_group_id',
+        'group_id',
         'unit_id',
         'purchase_price',
         'selling_price',
