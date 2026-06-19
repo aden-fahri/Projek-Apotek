@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Laporan Laba')
 
@@ -35,11 +35,11 @@
                 <div class="filter-date-range">
                     <span><i class="fa-regular fa-calendar text-gray-400"></i></span>
                     <input type="date" name="mulai_tanggal" id="mulai_laba"
-                           value="{{ $mulai }}"
+                           value="{{ $mulai }}" onclick="this.showPicker()"
                            style="border:none; background:transparent; font-family:inherit; font-size:13.5px; outline:none;">
                     <span style="color:var(--color-text-muted);">—</span>
                     <input type="date" name="sampai_tanggal" id="sampai_laba"
-                           value="{{ $sampai }}"
+                           value="{{ $sampai }}" onclick="this.showPicker()"
                            style="border:none; background:transparent; font-family:inherit; font-size:13.5px; outline:none;">
                 </div>
             </div>

@@ -1,11 +1,16 @@
 <aside class="sidebar-light" id="sidebar-admin">
     {{-- Logo --}}
+    @php $appSetting = \App\Models\PharmacySetting::getSetting(); @endphp
     <div class="sidebar-logo">
         <div class="sidebar-logo-icon">
-            <i class="fa-solid fa-pills"></i>
+            @if($appSetting->logo && file_exists(storage_path('app/public/' . $appSetting->logo)))
+                <img src="{{ Storage::url($appSetting->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
+            @else
+                <i class="fa-solid fa-pills"></i>
+            @endif
         </div>
         <div class="sidebar-logo-text">
-            <p class="sidebar-logo-title">MediFlow Pro</p>
+            <p class="sidebar-logo-title">{{ $appSetting->pharmacy_name }}</p>
             <p class="sidebar-logo-subtitle">Pharmacy Management</p>
         </div>
     </div>
@@ -20,6 +25,7 @@
                 ['route' => 'admin.laporan.keluar', 'icon' => 'fa-arrow-trend-down',   'label' => 'Laporan Keluar'],
                 ['route' => 'admin.laporan.laba',   'icon' => 'fa-scale-balanced',     'label' => 'Laporan Laba'],
                 ['route' => 'pengguna',             'icon' => 'fa-users',             'label' => 'Pengguna'],
+                ['route' => 'pengaturan',           'icon' => 'fa-gear',              'label' => 'Pengaturan'],
             ];
         @endphp
 
@@ -38,6 +44,8 @@
                     $isActive = request()->routeIs('admin.laporan.laba') || request()->routeIs('admin.laporan.laba.*');
                 } elseif ($menu['route'] === 'pengguna') {
                     $isActive = request()->routeIs('pengguna') || request()->routeIs('employees.*');
+                } elseif ($menu['route'] === 'pengaturan') {
+                    $isActive = request()->routeIs('pengaturan') || request()->routeIs('pengaturan.*');
                 }
             @endphp
             <a href="{{ route($menu['route']) }}" class="{{ $isActive ? 'active' : '' }}">
