@@ -5,7 +5,7 @@
 @push('styles')
 <style>
     .setting-container {
-        max-width: 860px;
+        width: 100%;
     }
     .setting-card {
         background: #fff;
