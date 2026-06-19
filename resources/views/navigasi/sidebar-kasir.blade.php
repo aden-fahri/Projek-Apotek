@@ -24,12 +24,12 @@
         </a>
     </nav>
 
-    {{-- Bottom: Keluar Only --}}
+    {{-- Bottom: Keluar with pop-up confirmation --}}
     <div class="sidebar-bottom">
-        <form method="POST" action="{{ route('logout') }}" style="margin-top: 4px;">
+        <form method="POST" action="{{ route('logout') }}" id="logout-form" style="margin: 0;">
             @csrf
-            <button type="submit" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; font-family: 'Inter', sans-serif;">
-                <i class="fa-solid fa-right-from-bracket nav-icon" style="color: #9ca3af;"></i>
+            <button type="button" onclick="confirmLogout()" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif;">
+                <i class="fa-solid fa-right-from-bracket nav-icon"></i>
                 Keluar
             </button>
         </form>
