@@ -89,6 +89,18 @@
 
 </div>
 
+{{-- ===== PENJELASAN PERHITUNGAN LABA ===== --}}
+<div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 8px; margin-bottom: 24px;">
+    <h4 style="margin: 0 0 8px 0; color: #1e3a8a; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-circle-info"></i> Informasi Perhitungan Laba
+    </h4>
+    <ul style="margin: 0; padding-left: 20px; color: #1e40af; font-size: 13px; line-height: 1.6;">
+        <li><strong>Laba Kotor:</strong> Dihitung dari <em>(Harga Jual - Harga Modal saat transaksi) x Jumlah Terjual</em> pada transaksi berstatus selesai.</li>
+        <li><strong>Laba Bersih:</strong> Dihitung dari <em>Laba Kotor - Total Nilai Return</em> (pengembalian barang ke supplier).</li>
+        <li><strong>Harga Modal (HPP):</strong> Menggunakan harga modal obat pada <strong>saat transaksi terjadi</strong>, bukan harga modal obat saat ini, sehingga laba tetap akurat meskipun harga modal obat berubah di kemudian hari.</li>
+    </ul>
+</div>
+
 {{-- ===== TABEL RINCIAN PER OBAT ===== --}}
 <div class="card">
     <div class="card-header">

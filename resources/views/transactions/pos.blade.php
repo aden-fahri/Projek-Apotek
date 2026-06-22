@@ -129,6 +129,7 @@
         text-transform: uppercase;
         font-weight: 600;
         margin-bottom: 4px;
+        padding-right: 55px; /* Mencegah tertimpa badge stok */
     }
     .pos-product-name {
         font-size: 13px;
@@ -340,21 +341,23 @@
     }
     .pos-summary-row {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 15px;
         margin-bottom: 6px;
         font-size: 12px;
     }
-    .pos-summary-label { color: #6b7280; font-weight: 600; }
+    .pos-summary-label { color: #6b7280; font-weight: 600; width: 100px; }
     .pos-summary-val { color: #374151; font-weight: 700; }
     .pos-summary-total {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 15px;
         margin-top: 10px;
         padding-top: 10px;
         border-top: 1px dashed #cbd5e1;
         align-items: center;
     }
-    .pos-summary-total-label { font-size: 14px; font-weight: 800; color: #1f2937; text-transform: uppercase; }
+    .pos-summary-total-label { font-size: 14px; font-weight: 800; color: #1f2937; text-transform: uppercase; width: 100px; }
     .pos-summary-total-val { font-size: 18px; font-weight: 800; color: #009688; }
 
     .pos-form-group { margin-bottom: 12px; }
@@ -583,11 +586,6 @@
             </div>
 
             <form id="checkoutForm" onsubmit="processCheckout(event)">
-                <div class="pos-form-group">
-                    <label class="pos-form-label">Nama Pelanggan (Opsional)</label>
-                    <input type="text" id="customerName" class="pos-input" placeholder="Pelanggan Umum">
-                </div>
-                
                 <div class="pos-grid-2">
                     <div class="pos-form-group">
                         <label class="pos-form-label">Metode</label>
@@ -599,7 +597,8 @@
                     </div>
                     <div class="pos-form-group">
                         <label class="pos-form-label">Uang Diterima</label>
-                        <input type="number" id="paidAmount" class="pos-input" required min="0" placeholder="0" style="font-weight: bold; color: #1f2937;">
+                        <input type="text" id="paidAmountDisplay" class="pos-input" required placeholder="0" style="font-weight: bold; color: #1f2937;">
+                        <input type="hidden" id="paidAmount">
                     </div>
                 </div>
 
@@ -669,6 +668,7 @@
     const summarySubtotal = document.getElementById('summarySubtotal');
     const summaryTax = document.getElementById('summaryTax');
     const summaryTotal = document.getElementById('summaryTotal');
+    const paidAmountDisplay = document.getElementById('paidAmountDisplay');
     const paidAmountInput = document.getElementById('paidAmount');
     const changeContainer = document.getElementById('changeContainer');
     const changeAmountTxt = document.getElementById('changeAmount');
@@ -679,7 +679,16 @@
     const productGrid = document.getElementById('productGrid');
     const noProductMsg = document.getElementById('noProductMsg');
 
-    paidAmountInput.addEventListener('input', updateChange);
+    const TAX_RATE = {{ $setting->tax_rate ?? 0 }};
+
+    paidAmountDisplay.addEventListener('input', function(e) {
+        let val = e.target.value.replace(/[^0-9]/g, '');
+        if(!val) val = '';
+        paidAmountInput.value = val;
+        e.target.value = val ? new Intl.NumberFormat('id-ID').format(val) : '';
+        updateChange();
+    });
+
     searchInput.addEventListener('input', debounce(fetchMedicines, 300));
     categoryFilter.addEventListener('change', fetchMedicines);
 
@@ -719,6 +728,8 @@
     }
 
     function renderCart() {
+        localStorage.setItem('pos_cart', JSON.stringify(cart));
+        
         if (cart.length === 0) {
             emptyCartMsg.style.display = 'flex';
             cartList.classList.remove('show');
@@ -757,9 +768,10 @@
 
         cartCountBadge.textContent = `${totalItems} Item`;
         
-        const tax = 0; 
+        const tax = subtotal * (TAX_RATE / 100); 
         const total = subtotal + tax;
         summarySubtotal.textContent = formatCurrency(subtotal);
+        document.querySelector('.pos-summary-row:nth-child(2) .pos-summary-label').textContent = `Pajak (${TAX_RATE}%)`;
         summaryTax.textContent = formatCurrency(tax);
         summaryTotal.textContent = formatCurrency(total);
         summaryTotal.dataset.value = total;
@@ -787,7 +799,6 @@
         const total = parseFloat(summaryTotal.dataset.value || 0);
         const paid = parseFloat(paidAmountInput.value || 0);
         const pm = document.getElementById('paymentMethod').value;
-        const cn = document.getElementById('customerName').value;
 
         if (pm === 'Tunai' && paid < total) { alert('Jumlah uang bayar kurang dari total belanja.'); return; }
         if (isProcessing) return;
@@ -803,7 +814,7 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     items: cart.map(c => ({ id: c.id, quantity: c.quantity })),
-                    payment_method: pm, paid_amount: paid, customer_name: cn, notes: ''
+                    payment_method: pm, paid_amount: paid, notes: ''
                 })
             });
             const data = await res.json();
@@ -870,13 +881,23 @@
     }
 
     function resetCartAndCloseModal() {
-        cart = []; renderCart();
+        cart = []; 
+        localStorage.removeItem('pos_cart');
+        renderCart();
         paidAmountInput.value = '';
-        document.getElementById('customerName').value = '';
+        paidAmountDisplay.value = '';
         document.getElementById('paymentMethod').value = 'Tunai';
         updateChange(); fetchMedicines();
         document.getElementById('successModal').classList.remove('show');
     }
+    
+    // Inisialisasi Cart dari localStorage saat load
+    document.addEventListener('DOMContentLoaded', () => {
+        let saved = localStorage.getItem('pos_cart');
+        if (saved) {
+            try { cart = JSON.parse(saved); renderCart(); } catch(e) { }
+        }
+    });
     
     function printReceipt() { alert('Fitur cetak struk sedang dalam pengembangan.'); }
 </script>

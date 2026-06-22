@@ -66,7 +66,7 @@ class LaporanMasukExport implements
             $row->kasir?->name ?? '-',
             $row->payment_method,
             match($row->status) {
-                'selesai'   => 'Selesai',
+                'completed' => 'Selesai',
                 'cancelled' => 'Dibatalkan',
                 default     => ucfirst($row->status),
             },

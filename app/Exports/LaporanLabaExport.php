@@ -44,11 +44,11 @@ class LaporanLabaExport implements
             ->selectRaw('
                 transaction_details.medicine_id,
                 SUM(transaction_details.quantity) as total_qty,
-                AVG(medicines.purchase_price) as avg_hpp,
+                AVG(transaction_details.purchase_price) as avg_hpp,
                 AVG(transaction_details.price) as avg_jual,
                 SUM(transaction_details.quantity * transaction_details.price) as total_penjualan,
-                SUM(transaction_details.quantity * medicines.purchase_price) as total_hpp,
-                SUM(transaction_details.quantity * (transaction_details.price - medicines.purchase_price)) as total_laba
+                SUM(transaction_details.quantity * transaction_details.purchase_price) as total_hpp,
+                SUM(transaction_details.quantity * (transaction_details.price - transaction_details.purchase_price)) as total_laba
             ')
             ->groupBy('transaction_details.medicine_id')
             ->orderByDesc('total_laba')

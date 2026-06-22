@@ -26,25 +26,22 @@ class SettingController extends Controller
         $validated = $request->validate([
             'pharmacy_name'   => 'required|string|max:255',
             'address'         => 'nullable|string',
-            'phone'           => 'nullable|string|max:20',
+            'phone'           => 'nullable|string|regex:/^08[0-9]{8,11}$/',
             'email'           => 'nullable|email|max:255',
-            'license_number'     => 'nullable|string|max:100',
-            'pharmacist_name'    => 'nullable|string|max:255',
-            'pharmacist_license' => 'nullable|string|max:100',
-            'footer_note'     => 'nullable|string',
+            'license_number'  => 'nullable|string|max:100',
+            'tax_rate'        => 'nullable|numeric|min:0|max:100',
             'logo'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ], [
+            'phone.regex' => 'Nomor telepon harus diawali dengan 08 dan hanya berisi angka.',
         ]);
 
         $setting = PharmacySetting::getSetting();
 
-        // Proses upload logo jika ada file baru
+        // Proses upload logo jika ada file baru (Simpan permanen di public/images agar bisa dipush ke github)
         if ($request->hasFile('logo')) {
-            // Hapus logo lama jika ada
-            if ($setting->logo && Storage::disk('public')->exists($setting->logo)) {
-                Storage::disk('public')->delete($setting->logo);
-            }
-            // Simpan logo baru
-            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+            $fileName = 'logo.' . $request->file('logo')->getClientOriginalExtension();
+            $request->file('logo')->move(public_path('images'), $fileName);
+            $validated['logo'] = 'images/' . $fileName;
         }
 
         $setting->update($validated);

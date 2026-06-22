@@ -4,8 +4,8 @@
     {{-- Logo --}}
     <div class="sidebar-logo">
         <div class="sidebar-logo-icon">
-            @if($sidebarKasir->logo && file_exists(storage_path('app/public/' . $sidebarKasir->logo)))
-                <img src="{{ Storage::url($sidebarKasir->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
+            @if($sidebarKasir->logo && file_exists(public_path($sidebarKasir->logo)))
+                <img src="{{ asset($sidebarKasir->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
             @else
                 <i class="fa-solid fa-pills"></i>
             @endif

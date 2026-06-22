@@ -138,14 +138,14 @@
                     </td>
                     <td>{{ $item->kasir?->name ?? '—' }}</td>
                     <td>{{ $item->payment_method }}</td>
-                    <td class="amount">Rp {{ number_format($item->total_amount, 0, ',', '.') }}</td>
+                    <td class="amount">Rp {{ number_format($item->grand_total, 0, ',', '.') }}</td>
                     <td>
-                        @if ($item->status === 'selesai')
-                            <span class="badge badge-success">● Selesai</span>
+                        @if ($item->status === 'completed')
+                            <span class="badge badge-success">●  Selesai</span>
                         @elseif ($item->status === 'pending')
-                            <span class="badge badge-warning">● Menunggu</span>
+                            <span class="badge badge-warning">●  Menunggu</span>
                         @else
-                            <span class="badge badge-danger">● Dibatalkan</span>
+                            <span class="badge badge-danger">●  Dibatalkan</span>
                         @endif
                     </td>
                 </tr>

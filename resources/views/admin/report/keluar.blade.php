@@ -113,19 +113,19 @@
             <tbody>
                 @forelse ($pembelian as $item)
                 <tr>
-                    <td>{{ \Carbon\Carbon::parse($item->purchase_date)->translatedFormat('d M Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->order_date)->translatedFormat('d M Y') }}</td>
                     <td>
                         <a href="#" class="invoice-link">{{ $item->invoice_number }}</a>
                     </td>
                     <td>{{ $item->supplier?->name ?? '—' }}</td>
                     <td class="amount">Rp {{ number_format($item->total_amount, 0, ',', '.') }}</td>
                     <td>
-                        @if ($item->status === 'selesai')
-                            <span class="badge badge-success">● Lunas</span>
+                        @if ($item->status === 'completed')
+                            <span class="badge badge-success">●  Lunas</span>
                         @elseif ($item->status === 'pending')
-                            <span class="badge badge-warning">● Tempo</span>
+                            <span class="badge badge-warning">●  Tempo</span>
                         @else
-                            <span class="badge badge-danger">● Dibatalkan</span>
+                            <span class="badge badge-danger">●  Dibatalkan</span>
                         @endif
                     </td>
                 </tr>

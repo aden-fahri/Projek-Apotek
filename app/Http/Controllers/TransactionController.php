@@ -94,7 +94,6 @@ class TransactionController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'payment_method' => 'required|in:Tunai,QRIS,Transfer',
             'paid_amount' => 'required|numeric|min:0',
-            'customer_name' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
 
@@ -131,8 +130,9 @@ class TransactionController extends Controller
                 ];
             }
 
-            // Simulasi Tax (misal 0% sementara, atau ambil dari setting jika ada)
-            $taxRate = 0; // 0%
+            // Ambil tax rate dari pengaturan
+            $setting = PharmacySetting::getSetting();
+            $taxRate = ($setting->tax_rate ?? 0) / 100;
             $taxAmount = $subtotal * $taxRate;
             $grandTotal = $subtotal + $taxAmount;
 
@@ -159,7 +159,6 @@ class TransactionController extends Controller
                 'paid_amount' => $request->paid_amount,
                 'change_amount' => $changeAmount,
                 'payment_method' => $request->payment_method,
-                'customer_name' => $request->customer_name,
                 'notes' => $request->notes,
                 'status' => 'completed',
             ]);

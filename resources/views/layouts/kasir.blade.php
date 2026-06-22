@@ -185,5 +185,19 @@
 </script>
 
 @stack('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('sidebarToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    document.body.classList.toggle('sidebar-open');
+                } else {
+                    document.body.classList.toggle('sidebar-collapsed');
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

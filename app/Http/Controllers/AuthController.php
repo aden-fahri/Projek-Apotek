@@ -30,15 +30,12 @@ class AuthController extends Controller
             'username' => 'required|string',
             'password' => 'required|string',
         ], [
-            'username.required' => 'Kolom username atau email wajib diisi.',
+            'username.required' => 'Kolom username wajib diisi.',
             'password.required' => 'Kolom password wajib diisi.',
         ]);
 
-        // Determine if the input is an email or username
-        $loginField = filter_var($request->input('username'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-
         $credentials = [
-            $loginField => $request->input('username'),
+            'username' => $request->input('username'),
             'password' => $request->input('password'),
             'is_active' => 1, // Only allow active users
         ];
