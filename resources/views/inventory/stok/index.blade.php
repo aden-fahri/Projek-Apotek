@@ -111,9 +111,6 @@
                     <button type="button" onclick="openAddMedicineModal()" class="h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[13px] px-4 rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-pills text-[11px]"></i> Tambah Produk Obat
                     </button>
-                    <a href="{{ route('purchase-order.create') }}" class="h-10 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-[13px] px-4 rounded-lg transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-[11px]"></i> Tambah Stok
-                    </a>
                 </div>
             @endif
         </form>
