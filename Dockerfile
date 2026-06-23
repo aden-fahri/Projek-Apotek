@@ -54,5 +54,8 @@ COPY --from=deps /app/vendor /var/www/html/vendor
 COPY ./ /var/www/html
 COPY --from=frontend-builder /app/public/build /var/www/html/public/build
 
+# Delete host-generated cache files
+RUN rm -f bootstrap/cache/*.php
+
 # Set permissions for storage & bootstrap/cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
