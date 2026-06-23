@@ -740,6 +740,42 @@ class InventoryController extends Controller
     }
 
     /**
+     * F-10: Purchase Order (PO) - Destroy Action (only for cancelled ones)
+     */
+    public function poDestroy($id)
+    {
+        $po = PurchaseOrder::findOrFail($id);
+
+        if ($po->status !== 'cancelled') {
+            return redirect()->route('purchase-order')->with('error', 'Hanya Purchase Order yang sudah dibatalkan yang dapat dihapus.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Delete associated stock batches if any still exist
+            MedicineStock::where('purchase_order_id', $po->id)->delete();
+
+            // Delete the PO itself (cascading deletes details)
+            $po->delete();
+
+            $this->logActivity(
+                "Menghapus secara permanen Pembelian (Purchase Order): {$po->invoice_number}",
+                'delete',
+                ['invoice_number' => $po->invoice_number]
+            );
+
+            DB::commit();
+
+            return redirect()->route('purchase-order')->with('success', "Pembelian {$po->invoice_number} berhasil dihapus secara permanen!");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('purchase-order')->with('error', 'Terjadi kesalahan saat menghapus pembelian: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * F-14: Return Obat - List
      */
     public function returnIndex()

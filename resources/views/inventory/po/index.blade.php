@@ -97,7 +97,16 @@
                                             </button>
                                         </form>
                                     @else
-                                        <span class="text-gray-400 text-[12px] font-medium">-</span>
+                                        <form action="{{ route('purchase-order.destroy', $po->id) }}" method="POST" class="inline" 
+                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus secara permanen Purchase Order ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg p-1.5 transition-colors" 
+                                                    title="Hapus PO">
+                                                <i class="fa-regular fa-trash-can text-[13px] px-[1px]"></i>
+                                            </button>
+                                        </form>
                                     @endif
                                 </div>
                             </td>
