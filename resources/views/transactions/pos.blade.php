@@ -523,9 +523,9 @@
                     @if($med->current_stock <= 0)
                         <span class="pos-badge-stock badge-danger">Habis</span>
                     @elseif($med->current_stock <= 10)
-                        <span class="pos-badge-stock badge-warn">Sisa {{ $med->current_stock }}</span>
+                        <span class="pos-badge-stock badge-warn">Sisa {{ number_format($med->current_stock, 0, ',', '.') }}</span>
                     @else
-                        <span class="pos-badge-stock badge-ok">Stok: {{ $med->current_stock }}</span>
+                        <span class="pos-badge-stock badge-ok">Stok: {{ number_format($med->current_stock, 0, ',', '.') }}</span>
                     @endif
                     <div class="pos-product-info">
                         <div class="pos-product-cat">{{ $med->category->name ?? 'Umum' }}</div>
@@ -757,7 +757,7 @@
                 <div class="pos-cart-actions">
                     <div class="pos-qty-controls">
                         <button type="button" class="pos-qty-btn" onclick="updateCartQty(${item.id}, -1)"><i class="fa-solid fa-minus"></i></button>
-                        <span class="pos-qty-val">${item.quantity}</span>
+                        <span class="pos-qty-val">${new Intl.NumberFormat('id-ID').format(item.quantity)}</span>
                         <button type="button" class="pos-qty-btn" onclick="updateCartQty(${item.id}, 1)"><i class="fa-solid fa-plus"></i></button>
                     </div>
                     <button type="button" class="pos-btn-remove" onclick="removeFromCart(${item.id})">Hapus</button>
@@ -766,7 +766,7 @@
             cartList.appendChild(li);
         });
 
-        cartCountBadge.textContent = `${totalItems} Item`;
+        cartCountBadge.textContent = `${new Intl.NumberFormat('id-ID').format(totalItems)} Item`;
         
         const tax = subtotal * (TAX_RATE / 100); 
         const total = subtotal + tax;
@@ -851,8 +851,8 @@
         medicines.forEach(med => {
             let badge = '';
             if (med.current_stock <= 0) badge = '<span class="pos-badge-stock badge-danger">Habis</span>';
-            else if (med.current_stock <= 10) badge = `<span class="pos-badge-stock badge-warn">Sisa ${med.current_stock}</span>`;
-            else badge = `<span class="pos-badge-stock badge-ok">Stok: ${med.current_stock}</span>`;
+            else if (med.current_stock <= 10) badge = `<span class="pos-badge-stock badge-warn">Sisa ${new Intl.NumberFormat('id-ID').format(med.current_stock)}</span>`;
+            else badge = `<span class="pos-badge-stock badge-ok">Stok: ${new Intl.NumberFormat('id-ID').format(med.current_stock)}</span>`;
 
             const div = document.createElement('div');
             div.className = 'pos-product-card';

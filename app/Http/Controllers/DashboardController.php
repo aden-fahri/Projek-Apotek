@@ -97,7 +97,7 @@ class DashboardController extends Controller
                 'id'        => $t->invoice_number,
                 'waktu'     => Carbon::parse($t->transaction_date)->format('H:i A'),
                 'pelanggan' => $t->customer_name ?: 'Umum',
-                'item'      => (int) DB::table('transaction_details')->where('transaction_id', $t->id)->sum('quantity'),
+                'item'      => number_format((int) DB::table('transaction_details')->where('transaction_id', $t->id)->sum('quantity'), 0, ',', '.'),
                 'total'     => $this->rp($t->grand_total),
                 'status'    => $t->status === 'completed' ? 'Selesai' : 'Dibatalkan',
             ])
@@ -112,22 +112,22 @@ class DashboardController extends Controller
             'totalPenjualan'       => $this->rp($salesToday),
             'trendPenjualan'       => $trendPenjualan,
             'trendPenjualanUp'     => $trendPenjualanUp,
-            'jumlahTransaksi'      => (string) $trxToday,
+            'jumlahTransaksi'      => number_format($trxToday, 0, ',', '.'),
             'trendTransaksi'       => $trendTransaksi,
             'trendTransaksiUp'     => $trendTransaksiUp,
             'rataRataNilai'        => $this->rp($avgTrx),
-            'obatTerjual'          => $itemsSoldToday . ' Item',
-            'resepDilayani'        => $resepServed,
-            'pelangganAktif'       => $customersServed,
+            'obatTerjual'          => number_format($itemsSoldToday, 0, ',', '.') . ' Item',
+            'resepDilayani'        => number_format($resepServed, 0, ',', '.'),
+            'pelangganAktif'       => number_format($customersServed, 0, ',', '.'),
 
             // Stok & kadaluwarsa
-            'mendekatiKadaluwarsa' => $mendekatiKadaluwarsa,
-            'itemPerluDiperiksa'   => $mendekatiKadaluwarsa,
-            'stokRendah'           => $stokRendah,
-            'segeraRestock'        => $stokRendah,
-            'stokAman'             => $totalStokQty,
-            'perluRestock'         => $stokRendah,
-            'dalamPemesanan'       => DB::table('purchase_orders')->where('status', 'pending')->count(),
+            'mendekatiKadaluwarsa' => number_format($mendekatiKadaluwarsa, 0, ',', '.'),
+            'itemPerluDiperiksa'   => number_format($mendekatiKadaluwarsa, 0, ',', '.'),
+            'stokRendah'           => number_format($stokRendah, 0, ',', '.'),
+            'segeraRestock'        => number_format($stokRendah, 0, ',', '.'),
+            'stokAman'             => number_format($totalStokQty, 0, ',', '.'),
+            'perluRestock'         => number_format($stokRendah, 0, ',', '.'),
+            'dalamPemesanan'       => number_format(DB::table('purchase_orders')->where('status', 'pending')->count(), 0, ',', '.'),
 
             // Daftar
             'topObat'              => $this->getTopObat($userId),
@@ -252,16 +252,16 @@ class DashboardController extends Controller
             'totalObat'        => number_format($totalObat, 0, ',', '.'),
             'trendObat'        => "+{$newObatThisMonth} Item Baru Bulan Ini",
             'totalStok'        => number_format($totalStok, 0, ',', '.'),
-            'stokNote'         => $lowStockCount > 0 ? "Perlu restock ({$lowStockCount} item)" : 'Tingkat stok optimal',
+            'stokNote'         => $lowStockCount > 0 ? "Perlu restock (" . number_format($lowStockCount, 0, ',', '.') . " item)" : 'Tingkat stok optimal',
             'penjualanHariIni' => $this->rp($salesToday),
             'trendPenjualan'   => $trendPenjualan,
             'trendPenjualanUp' => $trendPenjualanUp,
 
             // Mini stat cards
-            'totalTransaksi' => $totalTrxMonth,
+            'totalTransaksi' => number_format($totalTrxMonth, 0, ',', '.'),
             'rataRataNilai'  => $this->rp($avgTrx),
-            'supplierAktif'  => $supplierCount,
-            'kategoriObat'   => $categoryCount,
+            'supplierAktif'  => number_format($supplierCount, 0, ',', '.'),
+            'kategoriObat'   => number_format($categoryCount, 0, ',', '.'),
 
             // Kondisi inventaris
             'inventarisAman'     => $inventarisAman,
@@ -289,13 +289,13 @@ class DashboardController extends Controller
             'footerPembelian'          => $this->rp($footerPembelian),
             'footerPembelianTrend'     => $footerPembelianTrend,
             'footerPembelianTrendUp'   => $footerPembelianTrendUp,
-            'footerPertumbuhan'        => "{$footerPertumbuhan} Transaksi",
+            'footerPertumbuhan'        => number_format($footerPertumbuhan, 0, ',', '.') . " Transaksi",
             'footerPertumbuhanTrend'   => $footerPertumbuhanTrend,
             'footerPertumbuhanTrendUp' => $footerPertumbuhanTrendUp,
 
             // Alert
-            'lowStockCount'        => $lowStockCount,
-            'mendekatiKadaluwarsa' => DB::table('v_expiring_medicines')->count(),
+            'lowStockCount'        => number_format($lowStockCount, 0, ',', '.'),
+            'mendekatiKadaluwarsa' => number_format(DB::table('v_expiring_medicines')->count(), 0, ',', '.'),
         ];
 
         return view('pages.dashboard-admin', compact('data'));
@@ -484,7 +484,7 @@ class DashboardController extends Controller
         }
 
         return $medicines->values()->map(function ($m, $i) use ($withNo) {
-            $row = ['nama' => $m->name, 'kategori' => $m->kategori, 'terjual' => (int) $m->total_qty];
+            $row = ['nama' => $m->name, 'kategori' => $m->kategori, 'terjual' => number_format((int) $m->total_qty, 0, ',', '.')];
             if ($withNo) {
                 $row = array_merge(['no' => $i + 1], $row);
             }
@@ -529,7 +529,7 @@ class DashboardController extends Controller
             ->map(fn ($e) => [
                 'nama'  => $e->medicine_name,
                 'batch' => 'Batch: ' . $e->batch_number,
-                'hari'  => $e->days_until_expiry,
+                'hari'  => number_format($e->days_until_expiry, 0, ',', '.'),
             ])
             ->toArray();
     }
@@ -546,7 +546,7 @@ class DashboardController extends Controller
             ->map(fn ($ls) => [
                 'nama'     => $ls->medicine_name,
                 'kategori' => $ls->category_name ?? 'Lainnya',
-                'sisa'     => $ls->total_stock,
+                'sisa'     => number_format($ls->total_stock, 0, ',', '.'),
                 'persen'   => $ls->min_stock > 0 ? round(($ls->total_stock / $ls->min_stock) * 100) : 0,
             ])
             ->toArray();

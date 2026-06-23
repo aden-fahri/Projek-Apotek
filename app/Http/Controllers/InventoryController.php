@@ -85,12 +85,12 @@ class InventoryController extends Controller
 
         // Header statistics
         $stats = [
-            'total_jenis'   => Medicine::where('is_active', true)->count(),
-            'stok_menipis'  => DB::table('v_medicine_stock_summary')->where('stock_status', 'Stok Rendah')->count(),
-            'kadaluwarsa_30'=> MedicineStock::where('status', 'available')
+            'total_jenis'   => number_format(Medicine::where('is_active', true)->count(), 0, ',', '.'),
+            'stok_menipis'  => number_format(DB::table('v_medicine_stock_summary')->where('stock_status', 'Stok Rendah')->count(), 0, ',', '.'),
+            'kadaluwarsa_30'=> number_format(MedicineStock::where('status', 'available')
                                 ->where('quantity', '>', 0)
                                 ->where('expiry_date', '<=', now()->addDays(30))
-                                ->count(),
+                                ->count(), 0, ',', '.'),
             'nilai_aset'    => DB::table('v_medicine_stock_summary')
                                 ->select(DB::raw('SUM(total_stock * purchase_price) as total_val'))
                                 ->first()->total_val ?? 0,

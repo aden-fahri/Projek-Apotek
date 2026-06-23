@@ -254,7 +254,7 @@
         {{-- Footer pagination --}}
         @if($transactions->total() > 0)
         <div class="panel-foot">
-            <span>Menampilkan {{ $transactions->firstItem() ?: 0 }} - {{ $transactions->lastItem() ?: 0 }} dari {{ $transactions->total() }} data</span>
+            <span>Menampilkan {{ number_format($transactions->firstItem() ?: 0, 0, ',', '.') }} - {{ number_format($transactions->lastItem() ?: 0, 0, ',', '.') }} dari {{ number_format($transactions->total(), 0, ',', '.') }} data</span>
             @if($transactions->hasPages())
             <div class="pagi">
                 @if($transactions->onFirstPage())
@@ -411,7 +411,7 @@ function openModal(trx, items, kasir) {
                     </div>
                 </div>
             </td>
-            <td style="text-align:center;">${item.quantity}</td>
+            <td style="text-align:center;">${new Intl.NumberFormat('id-ID').format(item.quantity)}</td>
             <td style="text-align:right;">${rp(item.price)}</td>
             <td style="text-align:right;font-weight:600;">${rp(item.subtotal)}</td>
         </tr>`;
