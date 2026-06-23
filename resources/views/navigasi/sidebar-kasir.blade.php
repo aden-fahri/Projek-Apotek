@@ -4,8 +4,8 @@
     {{-- Logo --}}
     <div class="sidebar-logo">
         <div class="sidebar-logo-icon">
-            @if($sidebarKasir->logo && file_exists(storage_path('app/public/' . $sidebarKasir->logo)))
-                <img src="{{ Storage::url($sidebarKasir->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
+            @if($sidebarKasir->logo && file_exists(public_path($sidebarKasir->logo)))
+                <img src="{{ asset($sidebarKasir->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
             @else
                 <i class="fa-solid fa-pills"></i>
             @endif
@@ -22,6 +22,10 @@
             <i class="fa-solid fa-gauge-high nav-icon"></i>
             Dashboard
         </a>
+        <a href="{{ route('stok-obat') }}" class="{{ request()->routeIs('stok-obat') ? 'active' : '' }}">
+            <i class="fa-solid fa-box nav-icon"></i>
+            Stok Obat
+        </a>
         <a href="{{ route('kasir') }}" class="{{ request()->routeIs('kasir') ? 'active' : '' }}">
             <i class="fa-solid fa-calculator nav-icon"></i>
             Sistem Kasir
@@ -34,10 +38,10 @@
 
     {{-- Bottom: Keluar Only --}}
     <div class="sidebar-bottom">
-        <form method="POST" action="{{ route('logout') }}" id="logout-form" style="margin-top: 4px;">
+        <form method="POST" action="{{ route('logout') }}" id="logout-form" style="margin: 0;">
             @csrf
-            <button type="button" onclick="confirmLogout()" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6b7280; font-family: 'Inter', sans-serif;">
-                <i class="fa-solid fa-right-from-bracket nav-icon" style="color: #9ca3af;"></i>
+            <button type="button" onclick="confirmLogout()" style="width: 100%; border: none; cursor: pointer; background: transparent; text-align: left; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif;">
+                <i class="fa-solid fa-right-from-bracket nav-icon"></i>
                 Keluar
             </button>
         </form>

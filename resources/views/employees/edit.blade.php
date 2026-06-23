@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
@@ -514,18 +514,18 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Email (full width) -->
+                <!-- Row 2: Username (full width) -->
                 <div class="form-row full">
                     <div class="form-group">
-                        <label class="form-label" for="email">Email <span class="required">*</span></label>
-                        <input type="email" id="email" name="email" class="form-input {{ $errors->has('email') ? 'is-invalid' : '' }}" placeholder="email@contoh.com" value="{{ old('email', $employee->email) }}" required>
-                        @error('email')
+                        <label class="form-label" for="username">Username <span class="required">*</span></label>
+                        <input type="text" id="username" name="username" class="form-input {{ $errors->has('username') ? 'is-invalid' : '' }}" placeholder="username123" value="{{ old('username', $employee->username) }}" required>
+                        @error('username')
                         <span class="form-error">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                             {{ $message }}
                         </span>
                         @enderror
-                        <span class="form-hint">Pastikan email unik dan aktif untuk keperluan login.</span>
+                        <span class="form-hint">Pastikan username unik dan aktif untuk keperluan login.</span>
                     </div>
                 </div>
 

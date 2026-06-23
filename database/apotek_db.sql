@@ -17,6 +17,7 @@ USE `apotek_db`;
 CREATE TABLE `users` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL COMMENT 'Nama lengkap pengguna',
+    `username` VARCHAR(255) NOT NULL COMMENT 'Username untuk login',
     `email` VARCHAR(255) NOT NULL COMMENT 'Email untuk login',
     `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
     `password` VARCHAR(255) NOT NULL COMMENT 'Password terenkripsi (bcrypt)',
@@ -28,6 +29,7 @@ CREATE TABLE `users` (
     `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `users_username_unique` (`username`),
     UNIQUE KEY `users_email_unique` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Data pengguna aplikasi (Admin & Kasir)';
 
@@ -368,9 +370,9 @@ CREATE TABLE `cache_locks` (
 -- ============================================================
 -- SEED: Users (Password: "password" -> bcrypt hash)
 -- ============================================================
-INSERT INTO `users` (`name`, `email`, `password`, `role`, `phone`, `is_active`) VALUES
-('Administrator', 'admin@apotek.com', '$2y$12$YJwfjKl3XkF5MxP0T8Qj0eKlXb3F3kx6GxFz7qR5VhN8wA2dS4.mO', 'admin', '081234567890', 1),
-('Siti Kasir', 'kasir@apotek.com', '$2y$12$YJwfjKl3XkF5MxP0T8Qj0eKlXb3F3kx6GxFz7qR5VhN8wA2dS4.mO', 'kasir', '081234567891', 1);
+INSERT INTO `users` (`name`, `username`, `email`, `password`, `role`, `phone`, `is_active`) VALUES
+('Administrator', 'admin', 'admin@apotek.com', '$2y$10$SSVyBgTp6KdsoQyxjODR0.aVve3j9v3Xa62tHBfIoIOM6fu3YAWxS', 'admin', '081234567890', 1),
+('Siti Kasir', 'kasir', 'kasir@apotek.com', '$2y$10$SSVyBgTp6KdsoQyxjODR0.aVve3j9v3Xa62tHBfIoIOM6fu3YAWxS', 'kasir', '081234567891', 1);
 
 -- ============================================================
 -- SEED: Suppliers (Suplayer)

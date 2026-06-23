@@ -219,13 +219,8 @@
             @endif
         </div>
         <div>
-            <p style="font-size:11px; opacity:0.75; margin:0 0 4px 0; text-transform:uppercase; letter-spacing:0.5px;">Apoteker</p>
-            @if($setting->pharmacist_name)
-            <p style="font-size:13px; margin:0 0 2px 0;">{{ $setting->pharmacist_name }}</p>
-            @endif
-            @if($setting->pharmacist_license)
-            <p style="font-size:12px; opacity:0.85; margin:0;">SIPA: {{ $setting->pharmacist_license }}</p>
-            @endif
+            <p style="font-size:11px; opacity:0.75; margin:0 0 4px 0; text-transform:uppercase; letter-spacing:0.5px;">PPN / Pajak (%)</p>
+            <p style="font-size:18px; font-weight:700; margin:0;">{{ $setting->tax_rate }}%</p>
         </div>
     </div>
 
@@ -250,15 +245,27 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="form-group">
-                <label for="license_number">Nomor Izin Apotek (SIA)</label>
-                <input type="text" id="license_number" name="license_number"
-                    class="form-control @error('license_number') is-invalid @enderror"
-                    value="{{ old('license_number', $setting->license_number) }}"
-                    placeholder="Contoh: SIA-1234/2024/DINKES">
-                @error('license_number')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label for="license_number">Nomor Izin Apotek (SIA)</label>
+                    <input type="text" id="license_number" name="license_number"
+                        class="form-control @error('license_number') is-invalid @enderror"
+                        value="{{ old('license_number', $setting->license_number) }}"
+                        placeholder="Contoh: SIA-1234/2024/DINKES">
+                    @error('license_number')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="tax_rate">Pajak / PPN (%)</label>
+                    <input type="number" step="0.01" min="0" max="100" id="tax_rate" name="tax_rate"
+                        class="form-control @error('tax_rate') is-invalid @enderror"
+                        value="{{ old('tax_rate', $setting->tax_rate) }}"
+                        placeholder="Contoh: 11">
+                    @error('tax_rate')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
             </div>
         </div>
 
@@ -302,35 +309,6 @@
             </div>
         </div>
 
-        {{-- === CARD 3: Data Apoteker === --}}
-        <div class="setting-card">
-            <div class="setting-card-title">
-                <i class="fa-solid fa-user-nurse"></i>
-                Data Apoteker Penanggung Jawab
-            </div>
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label for="pharmacist_name">Nama Apoteker</label>
-                    <input type="text" id="pharmacist_name" name="pharmacist_name"
-                        class="form-control @error('pharmacist_name') is-invalid @enderror"
-                        value="{{ old('pharmacist_name', $setting->pharmacist_name) }}"
-                        placeholder="Contoh: Apt. Dr. Farida, S.Farm">
-                    @error('pharmacist_name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="pharmacist_license">Nomor SIPA</label>
-                    <input type="text" id="pharmacist_license" name="pharmacist_license"
-                        class="form-control @error('pharmacist_license') is-invalid @enderror"
-                        value="{{ old('pharmacist_license', $setting->pharmacist_license) }}"
-                        placeholder="Contoh: SIPA-5678/2024">
-                    @error('pharmacist_license')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-            </div>
-        </div>
 
         {{-- === CARD 4: Logo Apotek === --}}
         <div class="setting-card">
@@ -339,8 +317,8 @@
                 Logo Apotek
             </div>
             <div class="logo-preview-wrap">
-                @if($setting->logo && file_exists(storage_path('app/public/' . $setting->logo)))
-                    <img src="{{ Storage::url($setting->logo) }}" alt="Logo Apotek" class="logo-preview-img" id="logo-preview">
+                @if($setting->logo && file_exists(public_path($setting->logo)))
+                    <img src="{{ asset($setting->logo) }}" alt="Logo Apotek" class="logo-preview-img" id="logo-preview">
                 @else
                     <div class="logo-no-image" id="logo-placeholder">
                         <i class="fa-solid fa-image"></i>
@@ -363,24 +341,6 @@
             </div>
         </div>
 
-        {{-- === CARD 5: Catatan Kaki === --}}
-        <div class="setting-card">
-            <div class="setting-card-title">
-                <i class="fa-solid fa-file-lines"></i>
-                Catatan Kaki Laporan / Struk
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="footer_note">Teks Catatan Kaki</label>
-                <textarea id="footer_note" name="footer_note"
-                    class="form-control @error('footer_note') is-invalid @enderror"
-                    rows="3"
-                    placeholder="Contoh: Terima kasih telah berbelanja di apotek kami. Semoga lekas sembuh!">{{ old('footer_note', $setting->footer_note) }}</textarea>
-                @error('footer_note')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-                <p class="logo-hint" style="margin-top:6px;">Teks ini akan muncul di bagian bawah struk transaksi dan laporan PDF.</p>
-            </div>
-        </div>
 
         {{-- Tombol Simpan --}}
         <div style="display:flex; justify-content: flex-end; padding-bottom: 32px;">

@@ -44,11 +44,11 @@ class LaporanLabaExport implements
             ->selectRaw('
                 transaction_details.medicine_id,
                 SUM(transaction_details.quantity) as total_qty,
-                AVG(medicines.purchase_price) as avg_hpp,
+                AVG(transaction_details.purchase_price) as avg_hpp,
                 AVG(transaction_details.price) as avg_jual,
                 SUM(transaction_details.quantity * transaction_details.price) as total_penjualan,
-                SUM(transaction_details.quantity * medicines.purchase_price) as total_hpp,
-                SUM(transaction_details.quantity * (transaction_details.price - medicines.purchase_price)) as total_laba
+                SUM(transaction_details.quantity * transaction_details.purchase_price) as total_hpp,
+                SUM(transaction_details.quantity * (transaction_details.price - transaction_details.purchase_price)) as total_laba
             ')
             ->groupBy('transaction_details.medicine_id')
             ->orderByDesc('total_laba')
@@ -98,11 +98,11 @@ class LaporanLabaExport implements
     public function columnFormats(): array
     {
         return [
-            'F' => NumberFormat::FORMAT_ACCOUNTING_IDR, // HPP Rata-rata
-            'G' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Harga Jual Rata-rata
-            'H' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total Penjualan
-            'I' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total HPP
-            'J' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total Laba
+            'F' => '"Rp "* #,##0_-', // HPP Rata-rata
+            'G' => '"Rp "* #,##0_-', // Harga Jual Rata-rata
+            'H' => '"Rp "* #,##0_-', // Total Penjualan
+            'I' => '"Rp "* #,##0_-', // Total HPP
+            'J' => '"Rp "* #,##0_-', // Total Laba
         ];
     }
 

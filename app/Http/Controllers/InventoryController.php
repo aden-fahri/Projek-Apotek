@@ -129,27 +129,53 @@ class InventoryController extends Controller
             $code = $prefix . str_pad($num, 3, '0', STR_PAD_LEFT);
         }
 
-        $medicine = Medicine::create([
-            'code'                  => $code,
-            'name'                  => $request->name,
-            'category_id'           => $request->category_id,
-            'group_id'              => $request->group_id,
-            'unit_id'               => $request->unit_id,
-            'purchase_price'        => $request->purchase_price,
-            'selling_price'         => $request->selling_price,
-            'min_stock'             => $request->min_stock,
-            'description'           => $request->description,
-            'requires_prescription' => $request->has('requires_prescription') ? 1 : 0,
-            'is_active'             => 1,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $this->logActivity(
-            "Menambah produk obat baru: {$medicine->name} ({$medicine->code})",
-            'create',
-            ['medicine_id' => $medicine->id, 'code' => $medicine->code]
-        );
+            $medicine = Medicine::create([
+                'code'                  => $code,
+                'name'                  => $request->name,
+                'category_id'           => $request->category_id,
+                'group_id'              => $request->group_id,
+                'unit_id'               => $request->unit_id,
+                'purchase_price'        => $request->purchase_price,
+                'selling_price'         => $request->selling_price,
+                'min_stock'             => $request->min_stock,
+                'description'           => $request->description,
+                'requires_prescription' => $request->has('requires_prescription') ? 1 : 0,
+                'is_active'             => 1,
+            ]);
 
-        return redirect()->route('stok-obat')->with('success', 'Produk obat baru berhasil ditambahkan!');
+            // Create initial stock if provided
+            $initialStock = (int)$request->initial_stock;
+            if ($initialStock > 0) {
+                $request->validate([
+                    'expiry_date' => 'required|date|after_or_equal:today',
+                ]);
+
+                MedicineStock::create([
+                    'medicine_id'       => $medicine->id,
+                    'purchase_order_id' => null,
+                    'batch_number'      => $request->batch_number ?: 'SA-' . $code,
+                    'quantity'          => $initialStock,
+                    'initial_quantity'  => $initialStock,
+                    'expiry_date'       => $request->expiry_date,
+                    'status'            => 'available',
+                ]);
+            }
+
+            $this->logActivity(
+                "Menambah produk obat baru: {$medicine->name} ({$medicine->code})",
+                'create',
+                ['medicine_id' => $medicine->id, 'code' => $medicine->code]
+            );
+
+            DB::commit();
+            return redirect()->route('stok-obat')->with('success', 'Produk obat baru berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Gagal menambahkan produk obat: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -172,26 +198,66 @@ class InventoryController extends Controller
             'requires_prescription' => 'nullable|boolean',
         ]);
 
-        $medicine->update([
-            'code'                  => $request->code,
-            'name'                  => $request->name,
-            'category_id'           => $request->category_id,
-            'group_id'              => $request->group_id,
-            'unit_id'               => $request->unit_id,
-            'purchase_price'        => $request->purchase_price,
-            'selling_price'         => $request->selling_price,
-            'min_stock'             => $request->min_stock,
-            'description'           => $request->description,
-            'requires_prescription' => $request->has('requires_prescription') ? 1 : 0,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $this->logActivity(
-            "Mengubah data produk obat: {$medicine->name} ({$medicine->code})",
-            'update',
-            ['medicine_id' => $medicine->id, 'code' => $medicine->code]
-        );
+            $medicine->update([
+                'code'                  => $request->code,
+                'name'                  => $request->name,
+                'category_id'           => $request->category_id,
+                'group_id'              => $request->group_id,
+                'unit_id'               => $request->unit_id,
+                'purchase_price'        => $request->purchase_price,
+                'selling_price'         => $request->selling_price,
+                'min_stock'             => $request->min_stock,
+                'description'           => $request->description,
+                'requires_prescription' => $request->has('requires_prescription') ? 1 : 0,
+            ]);
 
-        return redirect()->route('stok-obat')->with('success', 'Data produk obat berhasil diperbarui!');
+            // Adjust stock if passed
+            if ($request->has('initial_stock')) {
+                $newStock = (int)$request->initial_stock;
+                // Get the first active batch of this medicine
+                $firstStock = MedicineStock::where('medicine_id', $id)
+                    ->where('status', 'available')
+                    ->first();
+                
+                if ($firstStock) {
+                    $firstStock->update([
+                        'quantity'         => $newStock,
+                        'initial_quantity' => max($firstStock->initial_quantity, $newStock),
+                        'batch_number'     => $request->batch_number ?: $firstStock->batch_number,
+                        'expiry_date'      => $request->expiry_date ?: $firstStock->expiry_date,
+                    ]);
+                } elseif ($newStock > 0) {
+                    $request->validate([
+                        'expiry_date' => 'required|date|after_or_equal:today',
+                    ]);
+
+                    MedicineStock::create([
+                        'medicine_id'       => $id,
+                        'purchase_order_id' => null,
+                        'batch_number'      => $request->batch_number ?: 'SA-' . $medicine->code,
+                        'quantity'          => $newStock,
+                        'initial_quantity'  => $newStock,
+                        'expiry_date'       => $request->expiry_date,
+                        'status'            => 'available',
+                    ]);
+                }
+            }
+
+            $this->logActivity(
+                "Mengubah data produk obat: {$medicine->name} ({$medicine->code})",
+                'update',
+                ['medicine_id' => $medicine->id, 'code' => $medicine->code]
+            );
+
+            DB::commit();
+            return redirect()->route('stok-obat')->with('success', 'Data produk obat berhasil diperbarui!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui produk obat: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -224,6 +290,48 @@ class InventoryController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->route('stok-obat')->with('error', 'Gagal menghapus produk obat karena terkait dengan data transaksi.');
+        }
+    }
+
+    /**
+     * Store a new category (AJAX supported)
+     */
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'name'        => 'required|string|max:255|unique:categories,name',
+            'description' => 'nullable|string',
+        ]);
+
+        try {
+            $category = \App\Models\Category::create([
+                'name'        => $request->name,
+                'description' => $request->description,
+            ]);
+
+            $this->logActivity(
+                "Menambah kategori obat baru: {$category->name}",
+                'create',
+                ['category_id' => $category->id]
+            );
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Kategori baru berhasil ditambahkan!',
+                    'category' => $category
+                ]);
+            }
+
+            return redirect()->route('stok-obat')->with('success', 'Kategori baru berhasil ditambahkan!');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menambahkan kategori: ' . $e->getMessage()
+                ], 422);
+            }
+            return redirect()->back()->withInput()->with('error', 'Gagal menambahkan kategori: ' . $e->getMessage());
         }
     }
 

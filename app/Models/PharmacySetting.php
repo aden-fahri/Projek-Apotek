@@ -13,9 +13,7 @@ class PharmacySetting extends Model
         'email',
         'logo',
         'license_number',
-        'pharmacist_name',
-        'pharmacist_license',
-        'footer_note',
+        'tax_rate',
     ];
 
     /**

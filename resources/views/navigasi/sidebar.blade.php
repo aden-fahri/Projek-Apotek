@@ -3,8 +3,8 @@
     @php $appSetting = \App\Models\PharmacySetting::getSetting(); @endphp
     <div class="sidebar-logo">
         <div class="sidebar-logo-icon">
-            @if($appSetting->logo && file_exists(storage_path('app/public/' . $appSetting->logo)))
-                <img src="{{ Storage::url($appSetting->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
+            @if($appSetting->logo && file_exists(public_path($appSetting->logo)))
+                <img src="{{ asset($appSetting->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
             @else
                 <i class="fa-solid fa-pills"></i>
             @endif

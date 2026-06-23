@@ -60,26 +60,27 @@ class EmployeeController extends Controller
     {
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
+            'username' => 'required|string|unique:users,username',
             'password' => 'required|string|min:8|confirmed',
             'role'     => 'required|in:admin,kasir',
-            'telepon'  => 'nullable|string|max:20',
+            'telepon'  => ['nullable', 'string', 'max:20', 'regex:/^08[0-9]{8,13}$/'],
             'alamat'   => 'nullable|string|max:500',
         ], [
             'name.required'      => 'Nama lengkap wajib diisi.',
-            'email.required'     => 'Email wajib diisi.',
-            'email.email'        => 'Format email tidak valid.',
-            'email.unique'       => 'Email ini sudah terdaftar dalam sistem. Gunakan email lain.',
+            'username.required'  => 'Username wajib diisi.',
+            'username.unique'    => 'Username ini sudah terdaftar. Gunakan username lain.',
             'password.required'  => 'Password wajib diisi.',
             'password.min'       => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'role.required'      => 'Role wajib dipilih.',
             'role.in'            => 'Role harus Admin atau Kasir.',
+            'telepon.regex'      => 'Nomor telepon harus diawali dengan 08 dan hanya berisi angka.',
         ]);
 
         User::create([
             'name'      => $validated['name'],
-            'email'     => $validated['email'],
+            'username'  => $validated['username'],
+            'email'     => $validated['username'] . '@apotek.local', // Auto-generate dummy email
             'password'  => $validated['password'],
             'role'      => $validated['role'],
             'telepon'   => $validated['telepon'] ?? null,
@@ -105,25 +106,25 @@ class EmployeeController extends Controller
     {
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $employee->id,
+            'username' => 'required|string|unique:users,username,' . $employee->id,
             'password' => 'nullable|string|min:8|confirmed',
             'role'     => 'required|in:admin,kasir',
-            'telepon'  => 'nullable|string|max:20',
+            'telepon'  => ['nullable', 'string', 'max:20', 'regex:/^08[0-9]{8,13}$/'],
             'alamat'   => 'nullable|string|max:500',
         ], [
             'name.required'      => 'Nama lengkap wajib diisi.',
-            'email.required'     => 'Email wajib diisi.',
-            'email.email'        => 'Format email tidak valid.',
-            'email.unique'       => 'Email ini sudah terdaftar dalam sistem. Gunakan email lain.',
+            'username.required'  => 'Username wajib diisi.',
+            'username.unique'    => 'Username ini sudah terdaftar. Gunakan username lain.',
             'password.min'       => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'role.required'      => 'Role wajib dipilih.',
             'role.in'            => 'Role harus Admin atau Kasir.',
+            'telepon.regex'      => 'Nomor telepon harus diawali dengan 08 dan hanya berisi angka.',
         ]);
 
         $data = [
             'name'    => $validated['name'],
-            'email'   => $validated['email'],
+            'username'=> $validated['username'],
             'role'    => $validated['role'],
             'telepon' => $validated['telepon'] ?? null,
             'alamat'  => $validated['alamat'] ?? null,

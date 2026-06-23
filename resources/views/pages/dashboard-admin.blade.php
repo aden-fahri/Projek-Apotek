@@ -8,11 +8,7 @@
     {{-- ===== HERO BANNER ===== --}}
     <div class="rounded-xl p-6" style="background: linear-gradient(135deg, #009688 0%, #00695c 100%);">
         <h2 class="text-[20px] font-bold text-white">Selamat Datang, {{ $data['userName'] }}</h2>
-        <p class="text-[13px] text-white/80 mt-1 mb-4">Ringkasan aktivitas apotek hari ini. Pantau stok dan penjualan untuk menjaga kelancaran operasional.</p>
-        <button class="bg-white/20 hover:bg-white/30 text-white text-[12px] font-semibold px-4 py-2 rounded-lg border border-white/30 transition-colors flex items-center gap-2">
-            <i class="fa-solid fa-plus text-[11px]"></i>
-            Transaksi Baru
-        </button>
+        <p class="text-[13px] text-white/80 mt-1">Ringkasan aktivitas apotek hari ini. Pantau stok dan penjualan untuk menjaga kelancaran operasional.</p>
     </div>
 
     {{-- ===== ROW 1: 3 STAT CARDS BESAR ===== --}}
@@ -124,18 +120,18 @@
                 <h3 class="text-[13px] font-semibold text-gray-700">Grafik Penjualan 7 Hari Terakhir</h3>
                 <a href="{{ route('laporan') }}" class="text-[11px] text-[#009688] hover:underline">Detail</a>
             </div>
-            <canvas id="chartPenjualan" height="140"></canvas>
+            <canvas id="chartPenjualan" height="140" data-chart='@json($data['penjualanChart'])'></canvas>
         </div>
 
         {{-- Donut Chart Distribusi --}}
         <div class="stat-card">
             <h3 class="text-[13px] font-semibold text-gray-700 mb-4">Distribusi Obat</h3>
-            <canvas id="chartDistribusi" height="140"></canvas>
+            <canvas id="chartDistribusi" height="140" data-chart='@json($data['distribusiObat'])'></canvas>
             <div class="mt-3 space-y-1.5">
                 @foreach($data['distribusiObat'] as $item)
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="w-2.5 h-2.5 rounded-sm" style="background:{{ $item['warna'] }}"></div>
+                        <div class="w-2.5 h-2.5 rounded-sm" style="--bg-color: {{ $item['warna'] }}; background-color: var(--bg-color);"></div>
                         <span class="text-[11px] text-gray-600">{{ $item['label'] }}</span>
                     </div>
                     <span class="text-[11px] font-semibold text-gray-700">{{ $item['persen'] }}%</span>
@@ -157,7 +153,7 @@
                         <span class="text-[11px] font-semibold text-[#009688]">{{ $data['inventarisAman'] }}%</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-[#009688] h-2 rounded-full" style="width:{{ $data['inventarisAman'] }}%"></div>
+                        <div class="bg-[#009688] h-2 rounded-full" style="--w-val: {{ $data['inventarisAman'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
                 <div>
@@ -166,7 +162,7 @@
                         <span class="text-[11px] font-semibold text-orange-500">{{ $data['inventarisMenengah'] }}%</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-orange-400 h-2 rounded-full" style="width:{{ $data['inventarisMenengah'] }}%"></div>
+                        <div class="bg-orange-400 h-2 rounded-full" style="--w-val: {{ $data['inventarisMenengah'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
                 <div>
@@ -175,7 +171,7 @@
                         <span class="text-[11px] font-semibold text-red-500">{{ $data['inventarisRendah'] }}%</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-red-500 h-2 rounded-full" style="width:{{ $data['inventarisRendah'] }}%"></div>
+                        <div class="bg-red-500 h-2 rounded-full" style="--w-val: {{ $data['inventarisRendah'] }}%; width: var(--w-val);"></div>
                     </div>
                 </div>
             </div>
@@ -244,7 +240,7 @@
                 <i class="fa-solid fa-triangle-exclamation text-orange-500"></i>
                 <h3 class="text-[13px] font-semibold text-orange-800">Obat Mendekati Kadaluwarsa</h3>
             </div>
-            <p class="text-[12px] text-orange-700">Terdapat 5 item obat yang akan kadaluwarsa dalam 30 hari ke depan. Harap segera lakukan penjualan.</p>
+            <p class="text-[12px] text-orange-700">Terdapat {{ $data['mendekatiKadaluwarsa'] }} item obat yang akan kadaluwarsa dalam 30 hari ke depan. Harap segera lakukan penjualan.</p>
             <a href="{{ route('stok-obat') }}" class="text-[11px] text-[#009688] font-semibold mt-2 inline-block hover:underline">Lihat Detail</a>
         </div>
 
@@ -254,7 +250,7 @@
                 <i class="fa-solid fa-bell text-gray-500"></i>
                 <h3 class="text-[13px] font-semibold text-gray-700">Peringatan Stok Rendah</h3>
             </div>
-            <p class="text-[12px] text-gray-600">12 item obat saat ini berada di bawah batas stok minimum. Segera lakukan pemesanan ke supplier.</p>
+            <p class="text-[12px] text-gray-600">{{ $data['lowStockCount'] }} item obat saat ini berada di bawah batas stok minimum. Segera lakukan pemesanan ke supplier.</p>
             <a href="{{ route('supplier') }}" class="text-[11px] text-[#009688] font-semibold mt-2 inline-block hover:underline">Buat PO Baru</a>
         </div>
     </div>
@@ -357,8 +353,8 @@
                 <p class="text-[10px] text-gray-400 uppercase tracking-wide">Total Penjualan (Bln Ini)</p>
                 <div class="flex items-center gap-2 mt-1">
                     <p class="text-[18px] font-bold text-gray-800">{{ $data['footerPenjualan'] }}</p>
-                    <span class="text-[10px] text-[#10b981] flex items-center gap-0.5">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 12.5%
+                    <span class="text-[10px] {{ $data['footerPenjualanTrendUp'] ? 'text-[#10b981]' : 'text-red-500' }} flex items-center gap-0.5">
+                        <i class="fa-solid {{ $data['footerPenjualanTrendUp'] ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i> {{ $data['footerPenjualanTrend'] }}
                     </span>
                 </div>
                 <p class="text-[10px] text-gray-400">vs Bulan lalu</p>
@@ -367,8 +363,8 @@
                 <p class="text-[10px] text-gray-400 uppercase tracking-wide">Total Pembelian (Bln Ini)</p>
                 <div class="flex items-center gap-2 mt-1">
                     <p class="text-[18px] font-bold text-gray-800">{{ $data['footerPembelian'] }}</p>
-                    <span class="text-[10px] text-red-500 flex items-center gap-0.5">
-                        <i class="fa-solid fa-arrow-trend-down"></i> 4.2%
+                    <span class="text-[10px] {{ $data['footerPembelianTrendUp'] ? 'text-red-500' : 'text-[#10b981]' }} flex items-center gap-0.5">
+                        <i class="fa-solid {{ $data['footerPembelianTrendUp'] ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i> {{ $data['footerPembelianTrend'] }}
                     </span>
                 </div>
                 <p class="text-[10px] text-gray-400">vs Bulan lalu</p>
@@ -377,8 +373,8 @@
                 <p class="text-[10px] text-gray-400 uppercase tracking-wide">Pertumbuhan Penjualan</p>
                 <div class="flex items-center gap-2 mt-1">
                     <p class="text-[18px] font-bold text-gray-800">{{ $data['footerPertumbuhan'] }}</p>
-                    <span class="text-[10px] text-[#10b981] flex items-center gap-0.5">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.4%
+                    <span class="text-[10px] {{ $data['footerPertumbuhanTrendUp'] ? 'text-[#10b981]' : 'text-red-500' }} flex items-center gap-0.5">
+                        <i class="fa-solid {{ $data['footerPertumbuhanTrendUp'] ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down' }}"></i> {{ $data['footerPertumbuhanTrend'] }}
                     </span>
                 </div>
                 <p class="text-[10px] text-gray-400">vs Bulan lalu</p>
@@ -396,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ===== BAR CHART PENJUALAN =====
     const ctxBar = document.getElementById('chartPenjualan');
     if (ctxBar) {
-        const penjualanData = @json($data['penjualanChart']);
+        const penjualanData = JSON.parse(ctxBar.getAttribute('data-chart'));
         new Chart(ctxBar, {
             type: 'bar',
             data: {
@@ -434,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ===== DONUT CHART DISTRIBUSI =====
     const ctxDonut = document.getElementById('chartDistribusi');
     if (ctxDonut) {
-        const distribusiData = @json($data['distribusiObat']);
+        const distribusiData = JSON.parse(ctxDonut.getAttribute('data-chart'));
         new Chart(ctxDonut, {
             type: 'doughnut',
             data: {

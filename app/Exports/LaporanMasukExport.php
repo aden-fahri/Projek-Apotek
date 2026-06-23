@@ -66,7 +66,7 @@ class LaporanMasukExport implements
             $row->kasir?->name ?? '-',
             $row->payment_method,
             match($row->status) {
-                'selesai'   => 'Selesai',
+                'completed' => 'Selesai',
                 'cancelled' => 'Dibatalkan',
                 default     => ucfirst($row->status),
             },
@@ -77,7 +77,7 @@ class LaporanMasukExport implements
     public function columnFormats(): array
     {
         return [
-            'G' => NumberFormat::FORMAT_ACCOUNTING_IDR, // Total Penjualan
+            'G' => '"Rp "* #,##0_-', // Total Penjualan
         ];
     }
 

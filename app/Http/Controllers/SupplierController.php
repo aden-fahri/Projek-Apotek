@@ -44,10 +44,12 @@ class SupplierController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^08[0-9]{8,13}$/'],
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',
+        ], [
+            'phone.regex' => 'Nomor telepon harus diawali dengan 08 dan hanya berisi angka.',
         ]);
 
         $validated['is_active'] = $request->has('is_active') ? $request->is_active : true;
@@ -65,10 +67,12 @@ class SupplierController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^08[0-9]{8,13}$/'],
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',
+        ], [
+            'phone.regex' => 'Nomor telepon harus diawali dengan 08 dan hanya berisi angka.',
         ]);
 
         $validated['is_active'] = $request->has('is_active') ? $request->is_active : $supplier->is_active;

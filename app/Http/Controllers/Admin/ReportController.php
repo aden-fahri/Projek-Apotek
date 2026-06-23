@@ -178,7 +178,7 @@ class ReportController extends Controller
             })
             ->selectRaw('
                 SUM(transaction_details.quantity * transaction_details.price) as total_penjualan,
-                SUM(transaction_details.quantity * medicines.purchase_price) as total_hpp
+                SUM(transaction_details.quantity * transaction_details.purchase_price) as total_hpp
             ')
             ->first();
 
@@ -210,11 +210,11 @@ class ReportController extends Controller
             ->selectRaw('
                 transaction_details.medicine_id,
                 SUM(transaction_details.quantity) as total_qty,
-                AVG(medicines.purchase_price) as avg_hpp,
+                AVG(transaction_details.purchase_price) as avg_hpp,
                 AVG(transaction_details.price) as avg_jual,
                 SUM(transaction_details.quantity * transaction_details.price) as total_penjualan,
-                SUM(transaction_details.quantity * medicines.purchase_price) as total_hpp,
-                SUM(transaction_details.quantity * (transaction_details.price - medicines.purchase_price)) as total_laba
+                SUM(transaction_details.quantity * transaction_details.purchase_price) as total_hpp,
+                SUM(transaction_details.quantity * (transaction_details.price - transaction_details.purchase_price)) as total_laba
             ')
             ->groupBy('transaction_details.medicine_id');
 
@@ -236,7 +236,7 @@ class ReportController extends Controller
                     now()->subMonth()->endOfMonth()->toDateString(),
                 ])->where('transactions.status', '!=', 'cancelled');
             })
-            ->selectRaw('SUM(transaction_details.quantity * (transaction_details.price - medicines.purchase_price)) as laba')
+            ->selectRaw('SUM(transaction_details.quantity * (transaction_details.price - transaction_details.purchase_price)) as laba')
             ->value('laba') ?? 0;
 
         $pctLabaKotor = $labaKotorBulanLalu > 0

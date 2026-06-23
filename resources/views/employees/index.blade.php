@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Manajemen Karyawan')
 
@@ -571,10 +571,10 @@
                 <h1 class="header-title">Manajemen Karyawan</h1>
                 <p class="header-subtitle">Kelola akun dan akses karyawan apotek</p>
             </div>
-            <a href="{{ route('employees.create') }}" class="btn-add">
+            <button type="button" class="btn-add" onclick="openModal('addEmployeeModal')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Tambah Karyawan
-            </a>
+            </button>
         </div>
 
         <!-- Metric Cards -->
@@ -618,7 +618,7 @@
                     <span class="search-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </span>
-                    <input type="text" name="search" class="search-input" placeholder="Cari Nama / Email..." value="{{ request('search') }}" onchange="this.form.submit()">
+                    <input type="text" name="search" class="search-input" placeholder="Cari Nama / Username..." value="{{ request('search') }}" onchange="this.form.submit()">
                 </div>
                 <div class="dropdown-group">
                     <select name="role" class="select-filter" onchange="this.form.submit()">
@@ -641,7 +641,7 @@
                         <tr>
                             <th class="col-id">#</th>
                             <th>Nama Karyawan</th>
-                            <th>Email</th>
+                            <th>Username</th>
                             <th>Role</th>
                             <th>Telepon</th>
                             <th>Status</th>
@@ -654,7 +654,7 @@
                         <tr>
                             <td class="col-id">{{ $employees->firstItem() + $index }}</td>
                             <td class="col-name">{{ $employee->name }}</td>
-                            <td>{{ $employee->email }}</td>
+                            <td>{{ $employee->username }}</td>
                             <td>
                                 <span class="badge-role {{ $employee->role == 'admin' ? 'admin' : 'kasir' }}">
                                     {{ ucfirst($employee->role) }}
@@ -738,6 +738,62 @@
             @endif
         </div>
     </div>
+
+    <!-- Modal Background overlay -->
+    <div class="modal-overlay" id="addEmployeeModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">Tambah Karyawan Baru</h3>
+                <button type="button" onclick="closeModal('addEmployeeModal')" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            
+            <form action="{{ route('employees.store') }}" method="POST">
+                @csrf
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Nama Lengkap <span style="color:red;">*</span></label>
+                        <input type="text" name="name" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;" value="{{ old('name') }}">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Username <span style="color:red;">*</span></label>
+                        <input type="text" name="username" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;" value="{{ old('username') }}">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Role <span style="color:red;">*</span></label>
+                            <select name="role" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <option value="kasir">Kasir</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">No. Telepon</label>
+                            <input type="text" name="telepon" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;" value="{{ old('telepon') }}">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Password <span style="color:red;">*</span></label>
+                            <input type="password" name="password" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Konfirmasi Password <span style="color:red;">*</span></label>
+                            <input type="password" name="password_confirmation" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Alamat</label>
+                        <textarea name="alamat" rows="2" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; resize: vertical;">{{ old('alamat') }}</textarea>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                        <button type="button" onclick="closeModal('addEmployeeModal')" style="padding: 10px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Batal</button>
+                        <button type="submit" style="padding: 10px 16px; border: none; background: #0D9488; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Simpan Karyawan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -760,7 +816,26 @@
                     }
                 }, 5000);
             });
+            
+            // Re-open modal if there are validation errors for creating
+            @if($errors->any() && !old('_method'))
+                openModal('addEmployeeModal');
+            @endif
         });
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if(modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if(modal) {
+                modal.style.display = 'none';
+            }
+        }
     </script>
 @endpush
 
