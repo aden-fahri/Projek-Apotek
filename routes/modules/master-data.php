@@ -31,14 +31,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // F-06: Kategori Obat
     Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
     Route::get('/kategori-obat', fn() => redirect()->route('categories.index'))->name('kategori-obat');
+    Route::get('categories/{category}/medicines', [CategoryController::class, 'medicines'])->name('categories.medicines');
 
     // F-07: Golongan Obat
     Route::resource('medicine-groups', MedicineGroupController::class)->except(['show', 'create', 'edit']);
     Route::get('/golongan-obat', fn() => redirect()->route('medicine-groups.index'))->name('golongan-obat');
+    Route::get('medicine-groups/{medicineGroup}/medicines', [MedicineGroupController::class, 'medicines'])->name('medicine-groups.medicines');
 
     // F-08: Satuan Obat
     Route::resource('units', UnitController::class)->except(['show', 'create', 'edit']);
     Route::get('/satuan-obat', fn() => redirect()->route('units.index'))->name('satuan-obat');
+    Route::get('units/{unit}/medicines', [UnitController::class, 'medicines'])->name('units.medicines');
 
     // F-09: Data Obat
     Route::get('/data-obat', fn() => redirect()->route('dashboard.admin'))->name('data-obat');

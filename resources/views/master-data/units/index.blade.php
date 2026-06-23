@@ -130,7 +130,16 @@
                             @endif
                         </td>
                         <td style="text-align:center;">
-                            <span class="badge-count">{{ $unit->medicines_count }}</span>
+                            @if($unit->medicines_count > 0)
+                            <button type="button" class="badge-count badge-clickable"
+                                title="Lihat daftar obat"
+                                onclick="openMedicinesModal('{{ route('units.medicines', $unit->id) }}', '{{ addslashes($unit->name) }}', {{ $unit->medicines_count }})">
+                                <i class="fa-solid fa-capsules" style="font-size:10px;"></i>
+                                {{ $unit->medicines_count }} obat
+                            </button>
+                            @else
+                            <span style="color:var(--text-secondary);font-size:13px;">—</span>
+                            @endif
                         </td>
                         <td>
                             <div class="action-cell" style="justify-content:center;">
@@ -261,6 +270,7 @@
 @endsection
 
 @push('scripts')
+@include('master-data.partials.medicines-modal')
 <script>
     const createModal = document.getElementById('create-modal');
     const editModal   = document.getElementById('edit-modal');

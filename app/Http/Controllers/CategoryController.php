@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Medicine;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -77,4 +78,29 @@ class CategoryController extends Controller
 
         return redirect()->route('categories.index')->with('success', 'Kategori obat berhasil dihapus.');
     }
-}
+
+    /**
+     * Return JSON list of medicines for a given category (AJAX).
+     */
+    public function medicines(Category $category)
+    {
+        $medicines = $category->medicines()
+            ->with(['unit', 'medicineGroup'])
+            ->withSum('stocks as current_stock', 'quantity')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($m) => [
+                'name'           => $m->name,
+                'code'           => $m->code,
+                'selling_price'  => $m->selling_price,
+                'unit'           => optional($m->unit)->abbreviation ?? optional($m->unit)->name ?? '-',
+                'current_stock'  => (int)($m->current_stock ?? 0),
+                'is_active'      => $m->is_active,
+                'requires_prescription' => $m->requires_prescription,
+            ]);
+
+        return response()->json([
+            'label'    => $category->name,
+            'medicines' => $medicines,
+        ]);
+    }

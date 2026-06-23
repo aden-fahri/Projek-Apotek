@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Unit;
+use App\Models\Medicine;
 use Illuminate\Http\Request;
 
 class UnitController extends Controller
@@ -77,4 +78,29 @@ class UnitController extends Controller
 
         return redirect()->route('units.index')->with('success', 'Satuan obat berhasil dihapus.');
     }
-}
+
+    /**
+     * Return JSON list of medicines for a given unit (AJAX).
+     */
+    public function medicines(Unit $unit)
+    {
+        $medicines = $unit->medicines()
+            ->with(['category', 'medicineGroup'])
+            ->withSum('stocks as current_stock', 'quantity')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($m) => [
+                'name'           => $m->name,
+                'code'           => $m->code,
+                'selling_price'  => $m->selling_price,
+                'unit'           => $unit->abbreviation ?? $unit->name,
+                'current_stock'  => (int)($m->current_stock ?? 0),
+                'is_active'      => $m->is_active,
+                'requires_prescription' => $m->requires_prescription,
+            ]);
+
+        return response()->json([
+            'label'    => $unit->name,
+            'medicines' => $medicines,
+        ]);
+    }
