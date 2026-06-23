@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Manajemen Karyawan')
 
@@ -382,7 +382,7 @@
             color: var(--primary);
         }
 
-        .btn-action.toggle:hover {
+        .btn-action.delete:hover {
             color: var(--danger);
         }
 
@@ -527,6 +527,46 @@
             background-color: #F1F5F9;
             color: var(--text-primary);
         }
+
+        /* Password wrapper */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s ease;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .password-toggle .icon-eye {
+            display: none;
+        }
+
+        .password-toggle.active .icon-eye {
+            display: block;
+        }
+
+        .password-toggle.active .icon-eye-off {
+            display: none;
+        }
     </style>
 @endpush
 
@@ -540,7 +580,13 @@
             </div>
             <div class="toast-content">
                 <div class="toast-title">Kesalahan</div>
-                <div class="toast-message">Mohon periksa kembali input form Anda.</div>
+                <div class="toast-message">
+                    <ul style="margin: 4px 0 0 0; padding-left: 16px; font-size: 13px; text-align: left; list-style-type: disc;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
             <button type="button" class="toast-close" onclick="closeToast('errorToast')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -680,9 +726,13 @@
                                     <a href="{{ route('employees.edit', $employee->id) }}" class="btn-action edit" title="Edit Karyawan">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                     </a>
-                                    <a href="#" class="btn-action toggle" title="Ubah Status Keaktifan">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="3"></circle></svg>
-                                    </a>
+                                    <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus karyawan {{ addslashes($employee->name) }}?')" style="margin: 0; display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-action delete" title="Hapus Karyawan">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -738,10 +788,91 @@
             @endif
         </div>
     </div>
+
+    <!-- Modal Background overlay -->
+    <div class="modal-overlay" id="addEmployeeModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">Tambah Karyawan Baru</h3>
+                <button type="button" onclick="closeModal('addEmployeeModal')" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            
+            <form action="{{ route('employees.store') }}" method="POST">
+                @csrf
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Nama Lengkap <span style="color:red;">*</span></label>
+                        <input type="text" name="name" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;" value="{{ old('name') }}">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Username <span style="color:red;">*</span></label>
+                        <input type="text" name="username" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;" value="{{ old('username') }}">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Role <span style="color:red;">*</span></label>
+                            <select name="role" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <option value="kasir">Kasir</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">No. Telepon <span style="color: #64748b; font-weight: normal; font-size: 13px;">(Opsional)</span></label>
+                            <input type="text" name="telepon" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;" value="{{ old('telepon') }}">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Password <span style="color:red;">*</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" id="create_password" name="password" required style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <button type="button" class="password-toggle" onclick="togglePassword('create_password', this)" aria-label="Tampilkan password" style="right: 8px;">
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Konfirmasi Password <span style="color:red;">*</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" id="create_password_confirmation" name="password_confirmation" required style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <button type="button" class="password-toggle" onclick="togglePassword('create_password_confirmation', this)" aria-label="Tampilkan konfirmasi password" style="right: 8px;">
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Alamat <span style="color: #64748b; font-weight: normal; font-size: 13px;">(Opsional)</span></label>
+                        <textarea name="alamat" rows="2" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; resize: vertical;">{{ old('alamat') }}</textarea>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                        <button type="button" onclick="closeModal('addEmployeeModal')" style="padding: 10px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Batal</button>
+                        <button type="submit" style="padding: 10px 16px; border: none; background: #0D9488; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Simpan Karyawan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    btn.classList.add('active');
+                } else {
+                    input.type = 'password';
+                    btn.classList.remove('active');
+                }
+            }
+        }
+
         function closeToast(id) {
             const toast = document.getElementById(id);
             if (toast) {
