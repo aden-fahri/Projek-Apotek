@@ -30,6 +30,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-**/vendor
+/vendor
+bootstrap/cache/*.php
 LICENSE
 README.md
