@@ -8,21 +8,13 @@
     .master-container { width: 100%; display: flex; flex-direction: column; gap: 24px; }
     .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .stat-card {
-        background: var(--white);
-        border-radius: 14px;
-        padding: 20px 24px;
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        align-items: center;
-        gap: 16px;
+        background: var(--white); border-radius: 14px; padding: 20px 24px;
+        border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+        display: flex; align-items: center; gap: 16px;
     }
-    .stat-icon {
-        width: 48px; height: 48px; border-radius: 12px;
-        display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
-    }
-    .stat-icon.teal { background: rgba(13,148,136,0.12); color: #0D9488; }
-    .stat-icon.blue { background: rgba(59,130,246,0.12); color: #3B82F6; }
+    .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .stat-icon.teal  { background: rgba(13,148,136,0.12); color: #0D9488; }
+    .stat-icon.blue  { background: rgba(59,130,246,0.12); color: #3B82F6; }
     .stat-icon.amber { background: rgba(245,158,11,0.12); color: #D97706; }
     .stat-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
     .stat-value { font-size: 26px; font-weight: 800; color: var(--text-primary); margin-top: 2px; }
@@ -31,6 +23,8 @@
         border-radius: 9999px; background: rgba(13,148,136,0.12); color: #0D9488;
         display: inline-flex; align-items: center; gap: 4px;
     }
+    .badge-clickable { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+    .badge-clickable:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(13,148,136,.25); }
     @media (max-width: 768px) { .stats-row { grid-template-columns: 1fr; } }
 </style>
 @endpush
@@ -38,7 +32,6 @@
 @section('content')
 <div class="master-container">
 
-    {{-- Header --}}
     <div class="header-section">
         <div class="header-title-area">
             <h1 class="header-title">Kategori Obat</h1>
@@ -79,9 +72,9 @@
         </div>
     @endif
     @if(session('error'))
-        <div class="alert-success" style="background:#FEE2E2;color:#B91C1C;border-color:rgba(239,68,68,.2);" id="flash-alert-err">
+        <div class="alert-success" style="background:#FEE2E2;color:#B91C1C;border-color:rgba(239,68,68,.2);" id="flash-err">
             <span>{{ session('error') }}</span>
-            <button class="alert-close" onclick="document.getElementById('flash-alert-err').remove()">&times;</button>
+            <button class="alert-close" onclick="document.getElementById('flash-err').remove()">&times;</button>
         </div>
     @endif
     @if($errors->any())
@@ -98,7 +91,6 @@
 
     {{-- Main Panel --}}
     <div class="panel">
-        {{-- Filter Bar --}}
         <div class="filter-form">
             <div class="filter-left">
                 <form action="{{ route('categories.index') }}" method="GET" style="display:flex;align-items:center;gap:12px;flex:1;">
@@ -116,7 +108,6 @@
             </button>
         </div>
 
-        {{-- Table --}}
         <div class="table-responsive">
             <table class="supplier-table">
                 <thead>
@@ -125,7 +116,7 @@
                         <th>Nama Kategori</th>
                         <th>Deskripsi</th>
                         <th style="text-align:center;">Jumlah Obat</th>
-                        <th style="width:100px;text-align:center;">Aksi</th>
+                        <th style="width:110px;text-align:center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -133,9 +124,7 @@
                     <tr>
                         <td style="color:var(--text-secondary);font-weight:600;">{{ $categories->firstItem() + $i }}</td>
                         <td>
-                            <div class="supplier-name-cell">
-                                <span class="supplier-name">{{ $category->name }}</span>
-                            </div>
+                            <span class="supplier-name">{{ $category->name }}</span>
                         </td>
                         <td>
                             <div class="supplier-address" title="{{ $category->description }}" style="max-width:300px;">
@@ -144,14 +133,14 @@
                         </td>
                         <td style="text-align:center;">
                             @if($category->medicines_count > 0)
-                            <button type="button" class="badge-count badge-clickable"
-                                title="Lihat daftar obat"
-                                onclick="openMedicinesModal('{{ route('categories.medicines', $category->id) }}', '{{ addslashes($category->name) }}', {{ $category->medicines_count }})">
-                                <i class="fa-solid fa-capsules" style="font-size:10px;"></i>
-                                {{ $category->medicines_count }} obat
-                            </button>
+                                <button type="button" class="badge-count badge-clickable"
+                                    title="Lihat daftar obat"
+                                    onclick="openMedicinesModal('{{ route('categories.medicines', $category->id) }}', '{{ addslashes($category->name) }}', {{ $category->medicines_count }})">
+                                    <i class="fa-solid fa-capsules" style="font-size:10px;"></i>
+                                    {{ $category->medicines_count }} obat
+                                </button>
                             @else
-                            <span style="color:var(--text-secondary);font-size:13px;">—</span>
+                                <span style="color:var(--text-secondary);font-size:13px;">—</span>
                             @endif
                         </td>
                         <td>
@@ -163,21 +152,14 @@
                                     onclick="openEditModal(this)">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                @if($category->medicines_count == 0)
-                                <form action="{{ route('categories.destroy', $category->id) }}" method="POST"
-                                    onsubmit="return confirm('Hapus kategori {{ addslashes($category->name) }}?')"
-                                    style="margin:0;display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-action delete" title="Hapus Kategori">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                    </button>
-                                </form>
-                                @else
-                                <button class="btn-action" title="Tidak bisa dihapus (masih digunakan)" style="opacity:.3;cursor:not-allowed;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <button class="btn-action delete" title="Hapus Kategori"
+                                    onclick="confirmDelete(
+                                        '{{ route('categories.destroy', $category->id) }}',
+                                        '{{ addslashes($category->name) }}',
+                                        {{ $category->medicines_count }}
+                                    )">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
-                                @endif
                             </div>
                         </td>
                     </tr>
@@ -188,7 +170,6 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
         @if($categories->hasPages() || $categories->total() > 0)
         <div class="panel-footer">
             <span class="footer-info">Menampilkan {{ $categories->firstItem() ?: 0 }}–{{ $categories->lastItem() ?: 0 }} dari {{ $categories->total() }} entri</span>
@@ -237,7 +218,7 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label class="form-label" for="create-name">Nama Kategori <span style="color:var(--danger);">*</span></label>
-                    <input type="text" name="name" id="create-name" class="form-input" placeholder="Contoh: Antibiotik, Vitamin & Suplemen..." required>
+                    <input type="text" name="name" id="create-name" class="form-input" placeholder="Contoh: Antibiotik, Vitamin &amp; Suplemen..." required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="create-description">Deskripsi</label>
@@ -281,6 +262,29 @@
         </form>
     </div>
 </div>
+
+{{-- DELETE CONFIRM MODAL --}}
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal-box" style="max-width:420px;">
+        <div class="modal-header" style="border-bottom:none;padding-bottom:0;">
+            <div style="width:48px;height:48px;background:#FEE2E2;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </div>
+        </div>
+        <div class="modal-body" style="text-align:center;padding-top:16px;">
+            <h3 id="delete-title" style="font-size:17px;font-weight:800;color:var(--text-primary);margin-bottom:8px;">Hapus Kategori?</h3>
+            <p id="delete-message" style="font-size:14px;color:var(--text-secondary);line-height:1.6;"></p>
+        </div>
+        <div class="modal-footer" style="justify-content:center;gap:12px;">
+            <button class="btn-secondary" onclick="closeDeleteModal()" style="min-width:100px;">Batal</button>
+            <form id="delete-form" action="" method="POST" style="margin:0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" id="delete-confirm-btn" class="btn-submit" style="background:linear-gradient(135deg,#EF4444,#DC2626);min-width:100px;">Hapus</button>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -288,28 +292,53 @@
 <script>
     const createModal = document.getElementById('create-modal');
     const editModal   = document.getElementById('edit-modal');
+    const deleteModal = document.getElementById('delete-modal');
     const editForm    = document.getElementById('edit-form');
+    const deleteForm  = document.getElementById('delete-form');
 
     function openCreateModal()  { createModal.classList.add('show'); document.body.style.overflow = 'hidden'; }
     function closeCreateModal() { createModal.classList.remove('show'); document.body.style.overflow = ''; }
+
     function openEditModal(btn) {
         document.getElementById('edit-name').value        = btn.dataset.name || '';
         document.getElementById('edit-description').value = btn.dataset.description || '';
-        editForm.action = `/categories/${btn.dataset.id}`;
+        editForm.action = '/categories/' + btn.dataset.id;
         editModal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
     function closeEditModal() { editModal.classList.remove('show'); document.body.style.overflow = ''; }
 
+    function confirmDelete(url, name, count) {
+        const title   = document.getElementById('delete-title');
+        const message = document.getElementById('delete-message');
+        const btn     = document.getElementById('delete-confirm-btn');
+        deleteForm.action = url;
+
+        if (count > 0) {
+            title.textContent   = 'Tidak Dapat Dihapus';
+            message.innerHTML   = 'Kategori <strong>' + name + '</strong> masih digunakan oleh <strong>' + count + ' obat</strong>.<br>Hapus atau pindahkan obat-obat tersebut terlebih dahulu sebelum menghapus kategori ini.';
+            btn.style.display   = 'none';
+        } else {
+            title.textContent   = 'Hapus Kategori?';
+            message.innerHTML   = 'Anda yakin ingin menghapus kategori <strong>' + name + '</strong>?<br><span style="color:#EF4444;font-size:12px;">Tindakan ini tidak dapat dibatalkan.</span>';
+            btn.style.display   = '';
+        }
+        deleteModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDeleteModal() { deleteModal.classList.remove('show'); document.body.style.overflow = ''; }
+
     window.addEventListener('click', e => {
         if (e.target === createModal) closeCreateModal();
         if (e.target === editModal)   closeEditModal();
+        if (e.target === deleteModal) closeDeleteModal();
     });
+
     setTimeout(() => {
-        const a = document.getElementById('flash-alert');
-        const b = document.getElementById('flash-alert-err');
-        if (a) a.style.transition='opacity .4s', a.style.opacity=0, setTimeout(()=>a.remove(), 400);
-        if (b) b.style.transition='opacity .4s', b.style.opacity=0, setTimeout(()=>b.remove(), 400);
+        ['flash-alert','flash-err'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.style.transition='opacity .4s'; el.style.opacity=0; setTimeout(()=>el.remove(), 400); }
+        });
     }, 4000);
 </script>
 @endpush
