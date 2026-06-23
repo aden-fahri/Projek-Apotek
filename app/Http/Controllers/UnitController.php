@@ -69,14 +69,22 @@ class UnitController extends Controller
      */
     public function destroy(Unit $unit)
     {
-        if ($unit->medicines()->count() > 0) {
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+            
+            if ($unit->medicines()->count() > 0) {
+                $unit->medicines()->delete();
+            }
+            
+            $unit->delete();
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->route('units.index')->with('success', 'Satuan obat dan data obat terkait berhasil dihapus.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
             return redirect()->route('units.index')
-                ->with('error', 'Satuan tidak dapat dihapus karena masih digunakan oleh data obat.');
+                ->with('error', 'Satuan tidak dapat dihapus karena obat di dalamnya terhubung dengan data transaksi atau riwayat stok.');
         }
-
-        $unit->delete();
-
-        return redirect()->route('units.index')->with('success', 'Satuan obat berhasil dihapus.');
     }
 
     /**

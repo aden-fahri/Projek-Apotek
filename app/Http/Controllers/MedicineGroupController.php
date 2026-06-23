@@ -74,14 +74,22 @@ class MedicineGroupController extends Controller
      */
     public function destroy(MedicineGroup $medicineGroup)
     {
-        if ($medicineGroup->medicines()->count() > 0) {
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+            
+            if ($medicineGroup->medicines()->count() > 0) {
+                $medicineGroup->medicines()->delete();
+            }
+            
+            $medicineGroup->delete();
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->route('medicine-groups.index')->with('success', 'Golongan obat dan data obat terkait berhasil dihapus.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
             return redirect()->route('medicine-groups.index')
-                ->with('error', 'Golongan tidak dapat dihapus karena masih digunakan oleh data obat.');
+                ->with('error', 'Golongan tidak dapat dihapus karena obat di dalamnya terhubung dengan data transaksi atau riwayat stok.');
         }
-
-        $medicineGroup->delete();
-
-        return redirect()->route('medicine-groups.index')->with('success', 'Golongan obat berhasil dihapus.');
     }
 
     /**

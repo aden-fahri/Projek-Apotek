@@ -124,7 +124,15 @@
                 @if($units->onFirstPage())<span class="page-link disabled">Sebelumnya</span>@else<a href="{{ $units->previousPageUrl() }}" class="page-link">Sebelumnya</a>@endif
                 @foreach($units->links()->elements as $element)
                     @if(is_string($element))<span class="page-link disabled">{{ $element }}</span>@endif
-                    @if(is_array($element))@foreach($element as $page => $url)@if($page == $units->currentPage())<span class="page-link active">{{ $page }}</span>@else<a href="{{ $url }}" class="page-link">{{ $page }}</a>@endif@endforeach@endif
+                    @if(is_array($element))
+                        @foreach($element as $page => $url)
+                            @if($page == $units->currentPage())
+                                <span class="page-link active">{{ $page }}</span>
+                            @else
+                                <a href="{{ $url }}" class="page-link">{{ $page }}</a>
+                            @endif
+                        @endforeach
+                    @endif
                 @endforeach
                 @if($units->hasMorePages())<a href="{{ $units->nextPageUrl() }}" class="page-link">Selanjutnya</a>@else<span class="page-link disabled">Selanjutnya</span>@endif
             </div>
@@ -217,13 +225,15 @@
         deleteForm.action = url;
         const btn = document.getElementById('delete-confirm-btn');
         if (count > 0) {
-            document.getElementById('delete-title').textContent   = 'Tidak Dapat Dihapus';
-            document.getElementById('delete-message').innerHTML   = 'Satuan <strong>' + name + '</strong> masih digunakan oleh <strong>' + count + ' obat</strong>.<br>Pindahkan obat terlebih dahulu.';
-            btn.style.display = 'none';
+            document.getElementById('delete-title').textContent   = 'Hapus Satuan beserta Obatnya?';
+            document.getElementById('delete-message').innerHTML   = 'Satuan <strong>' + name + '</strong> berisi <strong>' + count + ' obat</strong>.<br><span style="color:#EF4444;font-size:12px;">Menghapus satuan ini juga akan MENGHAPUS semua obat di dalamnya! Tindakan ini tidak dapat dibatalkan.</span>';
+            btn.style.display = '';
+            btn.textContent   = 'Hapus Semua';
         } else {
             document.getElementById('delete-title').textContent   = 'Hapus Satuan?';
             document.getElementById('delete-message').innerHTML   = 'Anda yakin ingin menghapus satuan <strong>' + name + '</strong>?<br><span style="color:#EF4444;font-size:12px;">Tindakan ini tidak dapat dibatalkan.</span>';
             btn.style.display = '';
+            btn.textContent   = 'Hapus';
         }
         deleteModal.classList.add('show'); document.body.style.overflow = 'hidden';
     }

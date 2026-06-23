@@ -69,14 +69,23 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        if ($category->medicines()->count() > 0) {
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+            
+            // Delete related medicines first to avoid foreign key constraint errors
+            if ($category->medicines()->count() > 0) {
+                $category->medicines()->delete();
+            }
+            
+            $category->delete();
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->route('categories.index')->with('success', 'Kategori dan data obat terkait berhasil dihapus.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
             return redirect()->route('categories.index')
-                ->with('error', 'Kategori tidak dapat dihapus karena masih digunakan oleh data obat.');
+                ->with('error', 'Kategori tidak dapat dihapus karena obat di dalamnya terhubung dengan data transaksi atau riwayat stok.');
         }
-
-        $category->delete();
-
-        return redirect()->route('categories.index')->with('success', 'Kategori obat berhasil dihapus.');
     }
 
     /**

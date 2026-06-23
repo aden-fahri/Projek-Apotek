@@ -315,13 +315,15 @@
         deleteForm.action = url;
 
         if (count > 0) {
-            title.textContent   = 'Tidak Dapat Dihapus';
-            message.innerHTML   = 'Kategori <strong>' + name + '</strong> masih digunakan oleh <strong>' + count + ' obat</strong>.<br>Hapus atau pindahkan obat-obat tersebut terlebih dahulu sebelum menghapus kategori ini.';
-            btn.style.display   = 'none';
+            title.textContent   = 'Hapus Kategori beserta Obatnya?';
+            message.innerHTML   = 'Kategori <strong>' + name + '</strong> berisi <strong>' + count + ' obat</strong>.<br><span style="color:#EF4444;font-size:12px;">Menghapus kategori ini juga akan MENGHAPUS semua obat di dalamnya! Tindakan ini tidak dapat dibatalkan.</span>';
+            btn.style.display   = '';
+            btn.textContent     = 'Hapus Semua';
         } else {
             title.textContent   = 'Hapus Kategori?';
             message.innerHTML   = 'Anda yakin ingin menghapus kategori <strong>' + name + '</strong>?<br><span style="color:#EF4444;font-size:12px;">Tindakan ini tidak dapat dibatalkan.</span>';
             btn.style.display   = '';
+            btn.textContent     = 'Hapus';
         }
         deleteModal.classList.add('show');
         document.body.style.overflow = 'hidden';
