@@ -23,6 +23,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/purchase-order', [InventoryController::class, 'poIndex'])->name('purchase-order');
         Route::get('/purchase-order/create', [InventoryController::class, 'poCreate'])->name('purchase-order.create');
         Route::post('/purchase-order', [InventoryController::class, 'poStore'])->name('purchase-order.store');
+        Route::get('/purchase-order/{id}/edit', [InventoryController::class, 'poEdit'])->name('purchase-order.edit');
+        Route::put('/purchase-order/{id}', [InventoryController::class, 'poUpdate'])->name('purchase-order.update');
+        Route::post('/purchase-order/{id}/cancel', [InventoryController::class, 'poCancel'])->name('purchase-order.cancel');
 
         // F-14: Return Obat
         Route::get('/return-obat', [InventoryController::class, 'returnIndex'])->name('return-obat');
