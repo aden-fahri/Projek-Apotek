@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link class="layout-style" rel="stylesheet" href="{{ asset('css/admin-layout.css') }}?v=1.1">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
     <style>
@@ -198,6 +199,31 @@
             });
         }
     });
+</script>
+<script>
+    function confirmDelete(event, form, title, text) {
+        event.preventDefault();
+        Swal.fire({
+            title: title || 'Apakah Anda Yakin?',
+            text: text || "Data yang dihapus tidak dapat dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Ya, Lanjutkan!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-xl',
+                confirmButton: 'rounded-lg px-4 py-2 font-semibold',
+                cancelButton: 'rounded-lg px-4 py-2 font-semibold'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
 </script>
 </body>
 </html>

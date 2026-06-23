@@ -31,12 +31,11 @@
                 
                 ['type' => 'header', 'label' => 'TRANSAKSI'],
                 ['type' => 'link', 'route' => 'purchase-order', 'icon' => 'fa-file-lines', 'label' => 'Pembelian (PO)'],
+                ['type' => 'link', 'route' => 'riwayat-transaksi', 'icon' => 'fa-cash-register', 'label' => 'Penjualan (POS)'],
                 ['type' => 'link', 'route' => 'return-obat', 'icon' => 'fa-arrow-rotate-left', 'label' => 'Return Obat'],
                 
                 ['type' => 'header', 'label' => 'LAPORAN'],
-                ['type' => 'link', 'route' => 'admin.laporan.masuk', 'icon' => 'fa-arrow-trend-up', 'label' => 'Laporan Masuk'],
-                ['type' => 'link', 'route' => 'admin.laporan.keluar', 'icon' => 'fa-arrow-trend-down', 'label' => 'Laporan Keluar'],
-                ['type' => 'link', 'route' => 'admin.laporan.laba', 'icon' => 'fa-scale-balanced', 'label' => 'Laporan Laba'],
+                ['type' => 'link', 'route' => 'admin.laporan.laba', 'icon' => 'fa-book', 'label' => 'Buku Besar'],
                 
                 ['type' => 'header', 'label' => 'PENGATURAN'],
                 ['type' => 'link', 'route' => 'pengguna', 'icon' => 'fa-users', 'label' => 'Pengguna'],
@@ -67,12 +66,10 @@
                         $isActive = request()->routeIs('stok-obat') || request()->routeIs('stok-obat.*');
                     } elseif ($route === 'purchase-order') {
                         $isActive = request()->routeIs('purchase-order') || request()->routeIs('purchase-order.*');
+                    } elseif ($route === 'riwayat-transaksi') {
+                        $isActive = request()->routeIs('riwayat-transaksi') || request()->routeIs('riwayat-transaksi.*');
                     } elseif ($route === 'return-obat') {
                         $isActive = request()->routeIs('return-obat') || request()->routeIs('return-obat.*');
-                    } elseif ($route === 'admin.laporan.masuk') {
-                        $isActive = request()->routeIs('admin.laporan.masuk') || request()->routeIs('admin.laporan.masuk.*');
-                    } elseif ($route === 'admin.laporan.keluar') {
-                        $isActive = request()->routeIs('admin.laporan.keluar') || request()->routeIs('admin.laporan.keluar.*');
                     } elseif ($route === 'admin.laporan.laba') {
                         $isActive = request()->routeIs('admin.laporan.laba') || request()->routeIs('admin.laporan.laba.*');
                     } elseif ($route === 'pengguna') {

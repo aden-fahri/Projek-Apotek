@@ -32,4 +32,10 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(PurchaseOrderDetail::class);
     }
+
+    // Relasi ke user (admin yang membuat PO)
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

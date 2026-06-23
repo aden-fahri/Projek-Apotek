@@ -289,34 +289,8 @@
         </div>
     </div>
 
-    {{-- ===== ROW 8: AKSI CEPAT + KALENDER ===== --}}
-    <div class="grid grid-cols-2 gap-4">
-        {{-- Aksi Cepat --}}
-        <div class="stat-card">
-            <h3 class="text-[13px] font-semibold text-gray-700 mb-4">Aksi Cepat</h3>
-            <div class="grid grid-cols-5 gap-2">
-                <a href="{{ route('supplier') }}" class="flex flex-col items-center gap-2 py-3 px-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <i class="fa-solid fa-truck text-[#009688] text-[16px]"></i>
-                    <span class="text-[10px] text-gray-600 text-center leading-tight">Supplier</span>
-                </a>
-                <a href="{{ route('admin.laporan.masuk') }}" class="flex flex-col items-center gap-2 py-3 px-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <i class="fa-solid fa-arrow-trend-up text-[#009688] text-[16px]"></i>
-                    <span class="text-[10px] text-gray-600 text-center leading-tight">Laporan Masuk</span>
-                </a>
-                <a href="{{ route('admin.laporan.keluar') }}" class="flex flex-col items-center gap-2 py-3 px-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <i class="fa-solid fa-arrow-trend-down text-[#009688] text-[16px]"></i>
-                    <span class="text-[10px] text-gray-600 text-center leading-tight">Laporan Keluar</span>
-                </a>
-                <a href="{{ route('admin.laporan.laba') }}" class="flex flex-col items-center gap-2 py-3 px-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <i class="fa-solid fa-scale-balanced text-[#009688] text-[16px]"></i>
-                    <span class="text-[10px] text-gray-600 text-center leading-tight">Laporan Laba</span>
-                </a>
-                <a href="{{ route('pengguna') }}" class="flex flex-col items-center gap-2 py-3 px-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <i class="fa-solid fa-users text-[#009688] text-[16px]"></i>
-                    <span class="text-[10px] text-gray-600 text-center leading-tight">Pengguna</span>
-                </a>
-            </div>
-        </div>
+    {{-- ===== ROW 8: KALENDER ===== --}}
+    <div class="grid grid-cols-1 gap-4">
 
         {{-- Kalender Operasional --}}
         <div class="stat-card">

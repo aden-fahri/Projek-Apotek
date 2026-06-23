@@ -189,33 +189,116 @@
             </form>
         </div>
 
-        {{-- Table --}}
-        <div style="overflow-x:auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>No. Invoice</th>
-                        <th>Tanggal & Waktu</th>
-                        <th>Kasir</th>
-                        <th>Pelanggan</th>
-                        <th>Metode</th>
-                        <th style="text-align:right;">Total Pembayaran</th>
-                        <th style="text-align:center;">Status</th>
-                        <th style="text-align:center;width:80px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($transactions as $trx)
-                    <tr>
-                        <td class="invoice-no">{{ $trx->invoice_number }}</td>
-                        <td style="color:#64748B;font-size:13px;">{{ $trx->transaction_date->format('d M Y H:i') }}</td>
-                        <td style="font-weight:600;">{{ $trx->kasir->name ?? 'System' }}</td>
-                        <td style="color:#64748B;">{{ $trx->customer_name ?: '-' }}</td>
-                        <td><span style="font-size:12px;color:#475569;text-transform:capitalize;">{{ $trx->payment_method }}</span></td>
-                        <td style="text-align:right;font-weight:700;">Rp {{ number_format($trx->grand_total,0,',','.') }}</td>
-                        <td style="text-align:center;">
-                            @if($trx->status === 'completed')
-                                <span class="badge-lunas">Lunas</span>
+        <!-- Main Content Panel -->
+        <div class="panel-card">
+            <!-- Filter Bar -->
+            <div class="filter-section">
+                <form action="{{ route('riwayat-transaksi') }}" method="GET" class="filter-form">
+                    <div class="form-group">
+                        <label class="form-label" for="start_date">Mulai Tanggal</label>
+                        <input type="date" name="start_date" id="start_date" class="form-input" value="{{ request('start_date') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="end_date">Sampai Tanggal</label>
+                        <input type="date" name="end_date" id="end_date" class="form-input" value="{{ request('end_date') }}">
+                    </div>
+
+                    <div class="filter-buttons">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                            <i class="fa-solid fa-filter"></i> Filter
+                        </button>
+                        <a href="{{ route('riwayat-transaksi') }}" class="btn btn-secondary" style="flex: 1;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Table Area -->
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>No. Invoice</th>
+                            <th>Tanggal</th>
+                            <th>Kasir</th>
+                            <th>Pelanggan</th>
+                            <th>Metode Bayar</th>
+                            <th style="text-align: right;">Total Transaksi</th>
+                            <th style="text-align: center;">Status</th>
+                            <th style="text-align: center; width: 120px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($transactions as $trx)
+                            <tr>
+                                <td class="invoice-cell">{{ $trx->invoice_number }}</td>
+                                <td>{{ $trx->transaction_date->format('d M Y H:i') }}</td>
+                                <td>
+                                    <span style="font-weight: 600;">{{ $trx->kasir->name ?? 'System' }}</span>
+                                </td>
+                                <td>{{ $trx->customer_name ?: '-' }}</td>
+                                <td>
+                                    <span class="badge badge-payment">{{ $trx->payment_method }}</span>
+                                </td>
+                                <td style="text-align: right; font-weight: 700; color: var(--text-primary);">
+                                    Rp {{ number_format($trx->grand_total, 0, ',', '.') }}
+                                </td>
+                                <td style="text-align: center;">
+                                    @if($trx->status === 'completed')
+                                        <span class="badge badge-success">Selesai</span>
+                                    @else
+                                        <span class="badge badge-danger">Batal</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="action-buttons" style="justify-content: center;">
+                                        <!-- View Detail Button -->
+                                        <button class="btn-icon btn-view" title="Detail Transaksi"
+                                            onclick="openDetailModal({{ json_encode($trx) }}, {{ json_encode($trx->details->load('medicine')) }}, '{{ $trx->kasir->name ?? 'System' }}')">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+
+                                        <!-- Cancel Transaksi (Admin Only) -->
+                                        @if(Auth::user()->role === 'admin' && $trx->status !== 'cancelled')
+                                            <form action="{{ route('riwayat-transaksi.cancel', $trx->id) }}" method="POST"
+                                                onsubmit="confirmDelete(event, this, 'Batalkan Transaksi?', 'Apakah Anda yakin ingin membatalkan transaksi {{ $trx->invoice_number }}? Tindakan ini akan mengembalikan stok obat.')"
+                                                style="margin: 0; display: inline;">
+                                                @csrf
+                                                <button type="submit" class="btn-icon btn-cancel" title="Batalkan Transaksi">
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    <i class="fa-regular fa-folder-open"></i>
+                                    <p style="margin: 0; font-weight: 600; font-size: 14px;">Tidak Ada Transaksi</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-secondary);">Belum ada riwayat transaksi dalam database atau filter tanggal tidak cocok.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Panel Footer Pagination -->
+            @if($transactions->hasPages() || $transactions->total() > 0)
+                <div class="panel-footer">
+                    <span class="footer-info">
+                        Menampilkan {{ $transactions->firstItem() ?: 0 }} - {{ $transactions->lastItem() ?: 0 }} dari {{ $transactions->total() }} transaksi
+                    </span>
+
+                    @if($transactions->hasPages())
+                        <div class="pagination">
+                            {{-- Previous Page Link --}}
+                            @if ($transactions->onFirstPage())
+                                <span class="page-link disabled"><i class="fa-solid fa-angle-left"></i></span>
                             @else
                                 <span class="badge-batal">Batal</span>
                             @endif

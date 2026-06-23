@@ -19,19 +19,14 @@
         </div>
     @endif
 
-    <!-- Info Banner Penjelasan Master Data -->
-    <div class="bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-xl p-5 shadow-sm flex items-center justify-between gap-6">
-        <div class="space-y-1">
-            <div class="flex items-center gap-2">
-                <span class="bg-teal-600 text-white text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md tracking-wider">Definisi</span>
-                <h4 class="font-bold text-[15px]">📋 Apa itu Master Data Obat?</h4>
-            </div>
-            <p class="text-[12.5px] text-teal-100/90 leading-relaxed max-w-3xl">
-                Halaman ini digunakan khusus untuk mengelola **identitas utama produk obat** (seperti Kode, Nama, Kategori, Golongan, Harga Beli/Jual dasar, dan Batas Minimum Stok). Data di sini berfungsi sebagai katalog acuan permanen. Stok aktual per batch dan tanggal kadaluwarsa dikelola secara dinamis di halaman <strong>Stok Obat</strong>.
-            </p>
+    <!-- Header Section -->
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div class="flex flex-col gap-1">
+            <h1 class="text-[28px] font-bold text-gray-800 leading-tight">Data Obat</h1>
+            <p class="text-[14px] font-medium text-gray-500">Daftar identitas utama produk obat yang menjadi katalog acuan permanen apotek</p>
         </div>
-        <a href="{{ route('stok-obat') }}" class="bg-white hover:bg-teal-50 text-teal-800 font-bold text-[12.5px] px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-boxes-stacked text-[14px]"></i> Buka Stok Obat &rarr;
+        <a href="{{ route('stok-obat') }}" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[14px] px-5 py-3 rounded-lg shadow-sm transition-all flex items-center gap-2">
+            <i class="fa-solid fa-boxes-stacked"></i> Buka Stok Obat
         </a>
     </div>
 
@@ -211,7 +206,7 @@
                                     </button>
 
                                     {{-- Delete --}}
-                                    <form action="{{ route('medicines.destroy', $med->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk obat {{ addslashes($med->name) }}? Semua batch stok obat ini juga akan terhapus.')" style="margin: 0; display: inline;">
+                                    <form action="{{ route('medicines.destroy', $med->id) }}" method="POST" onsubmit="confirmDelete(event, this, 'Hapus Obat?', 'Apakah Anda yakin ingin menghapus produk obat {{ addslashes($med->name) }}? Semua batch stok obat ini juga akan terhapus.')" style="margin: 0; display: inline;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-500 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Obat">
