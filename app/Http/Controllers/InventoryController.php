@@ -33,6 +33,54 @@ class InventoryController extends Controller
     }
 
     /**
+     * F-09: Data Obat (Master Data)
+     */
+    public function medicineIndex(Request $request)
+    {
+        $search = $request->input('search');
+        $category = $request->input('category');
+
+        $query = Medicine::with(['category', 'medicineGroup', 'unit'])
+            ->orderBy('name', 'asc');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        if ($category) {
+            $query->whereHas('category', function ($q) use ($category) {
+                $q->where('name', $category);
+            });
+        }
+
+        $medicines = $query->paginate(10)->withQueryString();
+
+        // Get active categories for filter dropdown
+        $categories = DB::table('categories')->select('name')->get();
+
+        // Get categories, groups, and units for Add/Edit forms
+        $categoriesList = DB::table('categories')->select('id', 'name')->orderBy('name')->get();
+        $groupsList = DB::table('medicine_groups')->select('id', 'name')->orderBy('name')->get();
+        $unitsList = DB::table('units')->select('id', 'name')->orderBy('name')->get();
+
+        // Stats for master obat
+        $stats = [
+            'total_jenis'   => Medicine::count(),
+            'resep_wajib'   => Medicine::where('requires_prescription', true)->count(),
+            'aktif'         => Medicine::where('is_active', true)->count(),
+            'non_aktif'     => Medicine::where('is_active', false)->count(),
+        ];
+
+        return view('inventory.stok.master', compact(
+            'medicines', 'categories', 'stats', 'search', 'category',
+            'categoriesList', 'groupsList', 'unitsList'
+        ));
+    }
+
+    /**
      * F-11: Lihat Stok Obat
      */
     public function stockIndex(Request $request)
@@ -171,7 +219,7 @@ class InventoryController extends Controller
             );
 
             DB::commit();
-            return redirect()->route('stok-obat')->with('success', 'Produk obat baru berhasil ditambahkan!');
+            return redirect()->route('data-obat')->with('success', 'Produk obat baru berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->withInput()->with('error', 'Gagal menambahkan produk obat: ' . $e->getMessage());
@@ -253,7 +301,7 @@ class InventoryController extends Controller
             );
 
             DB::commit();
-            return redirect()->route('stok-obat')->with('success', 'Data produk obat berhasil diperbarui!');
+            return redirect()->route('data-obat')->with('success', 'Data produk obat berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->withInput()->with('error', 'Gagal memperbarui produk obat: ' . $e->getMessage());
@@ -285,11 +333,11 @@ class InventoryController extends Controller
             );
 
             DB::commit();
-            return redirect()->route('stok-obat')->with('success', 'Produk obat berhasil dihapus!');
+            return redirect()->route('data-obat')->with('success', 'Produk obat berhasil dihapus!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('stok-obat')->with('error', 'Gagal menghapus produk obat karena terkait dengan data transaksi.');
+            return redirect()->route('data-obat')->with('error', 'Gagal menghapus produk obat karena terkait dengan data transaksi.');
         }
     }
 
@@ -323,7 +371,7 @@ class InventoryController extends Controller
                 ]);
             }
 
-            return redirect()->route('stok-obat')->with('success', 'Kategori baru berhasil ditambahkan!');
+            return redirect()->route('data-obat')->with('success', 'Kategori baru berhasil ditambahkan!');
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([

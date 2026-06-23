@@ -15,15 +15,13 @@ class PharmacySettingSeeder extends Seeder
         // Cek apakah sudah ada data, jika belum baru insert
         if (DB::table('pharmacy_settings')->count() === 0) {
             DB::table('pharmacy_settings')->insert([
-                'pharmacy_name'   => 'Apotek MediFlow',
-                'address'         => 'Jl. Kesehatan No. 1, Kota',
-                'phone'           => '021-0000000',
-                'email'           => 'apotek@mediflow.id',
+                'pharmacy_name'   => 'Apotek Sehat Farma',
+                'address'         => 'Jl. Kesehatan No.123, Kota Bandung, Jawa Barat 40123',
+                'phone'           => '022-1234567',
+                'email'           => 'info@apoteksehat.com',
                 'logo'            => null,
-                'license_number'      => 'SIA-000/000/00',
-                'pharmacist_name'     => 'Apt. Nama Apoteker, S.Farm.',
-                'pharmacist_license'  => 'SIPA-000/000/00',
-                'footer_note'     => 'Terima kasih telah mempercayai pelayanan kami.',
+                'license_number'  => 'SIA-1234/2024/DINKES',
+                'tax_rate'        => 0.00,
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ]);

@@ -19,6 +19,24 @@
         </div>
     @endif
 
+    <!-- Info Banner Penjelasan Stok Obat -->
+    <div class="bg-gradient-to-r from-cyan-800 to-teal-700 text-white rounded-xl p-5 shadow-sm flex items-center justify-between gap-6">
+        <div class="space-y-1">
+            <div class="flex items-center gap-2">
+                <span class="bg-cyan-600 text-white text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md tracking-wider">Definisi</span>
+                <h4 class="font-bold text-[15px]">📦 Apa itu Stok Obat & Batch?</h4>
+            </div>
+            <p class="text-[12.5px] text-cyan-100/90 leading-relaxed max-w-3xl">
+                Halaman ini menampilkan **jumlah stok fisik riil** dari masing-masing obat berdasarkan nomor batch dan tanggal kadaluwarsanya. Digunakan oleh Admin & Kasir untuk memantau obat yang menipis atau mendekati expired. Profil utama obat (nama, harga, kategori, dll.) dikelola oleh Admin di halaman <strong>Master Data Obat</strong>.
+            </p>
+        </div>
+        @if(auth()->user()->role === 'admin')
+        <a href="{{ route('data-obat') }}" class="bg-white hover:bg-cyan-50 text-cyan-800 font-bold text-[12.5px] px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-gear text-[14px]"></i> Kelola Katalog (Master) &rarr;
+        </a>
+        @endif
+    </div>
+
     {{-- ===== HEADER STATISTICS ===== --}}
     <div class="grid grid-cols-4 gap-4">
         {{-- Total Jenis --}}
@@ -103,16 +121,7 @@
                 </a>
             @endif
 
-            @if(auth()->user()->role === 'admin')
-                <div class="ml-auto flex items-center gap-2">
-                    <button type="button" onclick="openAddCategoryModal()" class="h-10 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-[13px] px-4 rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-folder-plus text-[11px]"></i> Tambah Kategori
-                    </button>
-                    <button type="button" onclick="openAddMedicineModal()" class="h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[13px] px-4 rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-pills text-[11px]"></i> Tambah Produk Obat
-                    </button>
-                </div>
-            @endif
+
         </form>
     </div>
 
@@ -171,6 +180,16 @@
                                     @else
                                         <p class="text-[11px] text-gray-400 mt-0.5">Belum ada batch stok</p>
                                     @endif
+
+                                    <div class="flex items-center gap-2 mt-1.5">
+                                        <span class="inline-flex items-center gap-1 text-[10.5px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-100">
+                                            <i class="fa-solid fa-layer-group"></i>
+                                            {{ isset($batches[$med->medicine_id]) ? count($batches[$med->medicine_id]) : 0 }} Batch
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">
+                                            Min. Stok: {{ $med->min_stock }}
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                             <td>
@@ -208,42 +227,7 @@
                                         <i class="fa-regular fa-file-lines text-[16px]"></i>
                                     </button>
 
-                                    @if(auth()->user()->role === 'admin')
-                                        {{-- Edit --}}
-                                        @php
-                                            $firstBatch = isset($batches[$med->medicine_id]) ? $batches[$med->medicine_id]->first() : null;
-                                            $firstBatchNumber = $firstBatch ? $firstBatch->batch_number : '';
-                                            $firstExpiryDate = $firstBatch ? ($firstBatch->expiry_date instanceof \Carbon\Carbon ? $firstBatch->expiry_date->format('Y-m-d') : substr($firstBatch->expiry_date, 0, 10)) : '';
-                                        @endphp
-                                        <button type="button"
-                                                data-id="{{ $med->medicine_id }}"
-                                                data-name="{{ $med->medicine_name }}"
-                                                data-code="{{ $med->medicine_code }}"
-                                                data-category_id="{{ $med->category_id }}"
-                                                data-group_id="{{ $med->group_id }}"
-                                                data-unit_id="{{ $med->unit_id }}"
-                                                data-purchase_price="{{ $med->purchase_price }}"
-                                                data-selling_price="{{ $med->selling_price }}"
-                                                data-min_stock="{{ $med->min_stock }}"
-                                                data-total_stock="{{ $med->total_stock }}"
-                                                data-first_batch_number="{{ $firstBatchNumber }}"
-                                                data-first_expiry_date="{{ $firstExpiryDate }}"
-                                                data-description="{{ $med->description }}"
-                                                data-requires_prescription="{{ $med->requires_prescription ? '1' : '0' }}"
-                                                class="text-amber-500 hover:text-amber-700 transition-colors btn-edit-medicine cursor-pointer"
-                                                title="Edit Obat">
-                                            <i class="fa-regular fa-pen-to-square text-[16px]"></i>
-                                        </button>
 
-                                        {{-- Delete --}}
-                                        <form action="{{ route('medicines.destroy', $med->medicine_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk obat {{ addslashes($med->medicine_name) }}? Semua batch stok obat ini juga akan terhapus.')" style="margin: 0; display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:text-red-700 transition-colors cursor-pointer" title="Hapus Obat">
-                                                <i class="fa-regular fa-trash-can text-[16px]"></i>
-                                            </button>
-                                        </form>
-                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -314,329 +298,7 @@
     </div>
 </div>
 
-{{-- ===== TAMBAH PRODUK OBAT MODAL ===== --}}
-<div id="addMedicineModal" class="fixed inset-0 z-50 flex items-center justify-center hidden" style="left: 220px; z-index: 9999;">
-    {{-- Backdrop --}}
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeAddMedicineModal()"></div>
-    
-    {{-- Modal Card --}}
-    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="addMedicineCard" style="max-width: 600px; width: 100%;">
-        {{-- Header --}}
-        <div class="bg-teal-700 p-4 text-white flex justify-between items-center">
-            <div>
-                <h3 class="font-bold text-[16px]">Tambah Produk Obat Baru</h3>
-                <p class="text-[11px] text-white/80 mt-0.5">Daftarkan produk obat baru ke dalam sistem master data</p>
-            </div>
-            <button onclick="closeAddMedicineModal()" class="text-white/80 hover:text-white transition-colors">
-                <i class="fa-solid fa-xmark text-[18px]"></i>
-            </button>
-        </div>
-        
-        <form action="{{ route('medicines.store') }}" method="POST">
-            @csrf
-            {{-- Body --}}
-            <div class="p-5 max-h-[500px] overflow-y-auto space-y-4 text-left">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Kode Obat (Opsional)</label>
-                        <input type="text" name="code" placeholder="Misal: OBT-001 (Auto jika kosong)" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nama Obat <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" required placeholder="Nama obat" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Kategori <span class="text-red-500">*</span></label>
-                        <div class="flex items-center gap-1.5">
-                            <select name="category_id" id="add_category_id" required class="flex-1 h-10 bg-gray-50 border border-gray-200 rounded-lg px-2 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                                <option value="">Pilih</option>
-                                @foreach($categoriesList as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                            <button type="button" onclick="openAddCategoryModal('add_category_id')" class="w-10 h-10 bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200 rounded-lg flex items-center justify-center transition-colors cursor-pointer" title="Tambah Kategori Baru">
-                                <i class="fa-solid fa-plus text-[14px]"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Golongan <span class="text-red-500">*</span></label>
-                        <select name="group_id" required class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-2 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                            <option value="">Pilih</option>
-                            @foreach($groupsList as $grp)
-                                <option value="{{ $grp->id }}">{{ $grp->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Satuan <span class="text-red-500">*</span></label>
-                        <select name="unit_id" required class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-2 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                            <option value="">Pilih</option>
-                            @foreach($unitsList as $unit)
-                                <option value="{{ $unit->id }}">{{ $unit->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Harga Beli <span class="text-red-500">*</span></label>
-                        <input type="number" name="purchase_price" required min="0" placeholder="Rp" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Harga Jual <span class="text-red-500">*</span></label>
-                        <input type="number" name="selling_price" required min="0" placeholder="Rp" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Stok Minimal (Tanda Menipis) <span class="text-red-500">*</span></label>
-                        <input type="number" name="min_stock" required min="0" value="10" placeholder="Min" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                </div>
-
-                <div class="border-t border-gray-100 pt-3 mt-3">
-                    <p class="text-[12px] font-bold text-gray-700 mb-2">Stok Awal / Tersedia (Opsional)</p>
-                    <div class="grid grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Stok Tersedia</label>
-                            <input type="number" name="initial_stock" id="add_initial_stock" min="0" value="0" placeholder="0" 
-                                   class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">No. Batch</label>
-                            <input type="text" name="batch_number" id="add_batch_number" placeholder="SA-OBT..." 
-                                   class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Tgl Kadaluwarsa <span id="add_expiry_star" class="text-red-500 hidden">*</span></label>
-                            <input type="date" name="expiry_date" id="add_expiry_date" 
-                                   class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Keterangan / Deskripsi</label>
-                    <textarea name="description" rows="2" placeholder="Deskripsi obat..." 
-                              class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors"></textarea>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" name="requires_prescription" id="add_requires_prescription" value="1" 
-                           class="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
-                    <label for="add_requires_prescription" class="text-[13px] font-medium text-gray-600 cursor-pointer select-none">Membutuhkan Resep Dokter</label>
-                </div>
-            </div>
-            
-            {{-- Footer --}}
-            <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-end gap-2">
-                <button type="button" onclick="closeAddMedicineModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors">
-                    Batal
-                </button>
-                <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors">
-                    Simpan Obat
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- ===== EDIT PRODUK OBAT MODAL ===== --}}
-<div id="editMedicineModal" class="fixed inset-0 z-50 flex items-center justify-center hidden" style="left: 220px; z-index: 9999;">
-    {{-- Backdrop --}}
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeEditMedicineModal()"></div>
-    
-    {{-- Modal Card --}}
-    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="editMedicineCard" style="max-width: 600px; width: 100%;">
-        {{-- Header --}}
-        <div class="bg-teal-700 p-4 text-white flex justify-between items-center">
-            <div>
-                <h3 class="font-bold text-[16px]">Edit Produk Obat</h3>
-                <p class="text-[11px] text-white/80 mt-0.5" id="editMedicineSubtitle">Ubah data master produk obat</p>
-            </div>
-            <button onclick="closeEditMedicineModal()" class="text-white/80 hover:text-white transition-colors">
-                <i class="fa-solid fa-xmark text-[18px]"></i>
-            </button>
-        </div>
-        
-        <form action="" method="POST" id="editMedicineForm">
-            @csrf
-            @method('PUT')
-            {{-- Body --}}
-            <div class="p-5 max-h-[500px] overflow-y-auto space-y-4 text-left">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Kode Obat <span class="text-red-500">*</span></label>
-                        <input type="text" name="code" id="edit_code" required 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nama Obat <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" id="edit_name" required 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Kategori <span class="text-red-500">*</span></label>
-                        <div class="flex items-center gap-1.5">
-                            <select name="category_id" id="edit_category_id" required class="flex-1 h-10 bg-gray-50 border border-gray-200 rounded-lg px-2 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                                <option value="">Pilih</option>
-                                @foreach($categoriesList as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                            <button type="button" onclick="openAddCategoryModal('edit_category_id')" class="w-10 h-10 bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200 rounded-lg flex items-center justify-center transition-colors cursor-pointer" title="Tambah Kategori Baru">
-                                <i class="fa-solid fa-plus text-[14px]"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Golongan <span class="text-red-500">*</span></label>
-                        <select name="group_id" id="edit_group_id" required class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-2 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                            <option value="">Pilih</option>
-                            @foreach($groupsList as $grp)
-                                <option value="{{ $grp->id }}">{{ $grp->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Satuan <span class="text-red-500">*</span></label>
-                        <select name="unit_id" id="edit_unit_id" required class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-2 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                            <option value="">Pilih</option>
-                            @foreach($unitsList as $unit)
-                                <option value="{{ $unit->id }}">{{ $unit->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Harga Beli <span class="text-red-500">*</span></label>
-                        <input type="number" name="purchase_price" id="edit_purchase_price" required min="0" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Harga Jual <span class="text-red-500">*</span></label>
-                        <input type="number" name="selling_price" id="edit_selling_price" required min="0" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Stok Minimal (Tanda Menipis) <span class="text-red-500">*</span></label>
-                        <input type="number" name="min_stock" id="edit_min_stock" required min="0" 
-                               class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                </div>
-
-                <div class="border-t border-gray-100 pt-3 mt-3">
-                    <p class="text-[12px] font-bold text-gray-700 mb-2">Stok Tersedia & Batch Pertama</p>
-                    <div class="grid grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Stok Tersedia</label>
-                            <input type="number" name="initial_stock" id="edit_initial_stock" min="0" placeholder="0" 
-                                   class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">No. Batch</label>
-                            <input type="text" name="batch_number" id="edit_batch_number" placeholder="No. Batch" 
-                                   class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Tgl Kadaluwarsa <span id="edit_expiry_star" class="text-red-500 hidden">*</span></label>
-                            <input type="date" name="expiry_date" id="edit_expiry_date" 
-                                   class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-gray-400 mt-1">Mengubah nilai di atas akan memperbarui sisa stok batch aktif pertama dari obat ini.</p>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Keterangan / Deskripsi</label>
-                    <textarea name="description" id="edit_description" rows="2" placeholder="Deskripsi obat..." 
-                              class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors"></textarea>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" name="requires_prescription" id="edit_requires_prescription" value="1" 
-                           class="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
-                    <label for="edit_requires_prescription" class="text-[13px] font-medium text-gray-600 cursor-pointer select-none">Membutuhkan Resep Dokter</label>
-                </div>
-            </div>
-            
-            {{-- Footer --}}
-            <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-end gap-2">
-                <button type="button" onclick="closeEditMedicineModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors">
-                    Batal
-                </button>
-                <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors">
-                    Simpan Perubahan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- ===== TAMBAH KATEGORI BARU MODAL ===== --}}
-<div id="addCategoryModal" class="fixed inset-0 z-[60] flex items-center justify-center hidden" style="left: 220px; z-index: 10000;">
-    {{-- Backdrop --}}
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeAddCategoryModal()"></div>
-    
-    {{-- Modal Card --}}
-    <div class="bg-white rounded-xl shadow-xl border border-gray-100 max-w-md w-full m-4 relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="addCategoryCard" style="max-width: 500px; width: 100%;">
-        {{-- Header --}}
-        <div class="bg-teal-700 p-4 text-white flex justify-between items-center">
-            <div>
-                <h3 class="font-bold text-[16px]">Tambah Kategori Baru</h3>
-                <p class="text-[11px] text-white/80 mt-0.5">Buat kategori baru untuk mengelompokkan obat-obatan</p>
-            </div>
-            <button type="button" onclick="closeAddCategoryModal()" class="text-white/80 hover:text-white transition-colors">
-                <i class="fa-solid fa-xmark text-[18px]"></i>
-            </button>
-        </div>
-        
-        <form id="addCategoryForm" onsubmit="submitCategoryForm(event)">
-            @csrf
-            {{-- Body --}}
-            <div class="p-5 space-y-4 text-left">
-                <div>
-                    <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="category_name" required placeholder="Misal: Antibiotik, Vitamin" 
-                           class="w-full h-10 bg-gray-50 border border-gray-200 rounded-lg px-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Deskripsi / Keterangan</label>
-                    <textarea name="description" id="category_description" rows="3" placeholder="Keterangan singkat kategori..." 
-                              class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-[13px] text-gray-700 focus:outline-none focus:border-teal-500 transition-colors"></textarea>
-                </div>
-                <div id="category_error_alert" class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-3 flex items-start gap-2.5 hidden">
-                    <i class="fa-solid fa-triangle-exclamation text-red-600 mt-0.5"></i>
-                    <p class="text-[12px] font-medium" id="category_error_text">Terjadi kesalahan</p>
-                </div>
-            </div>
-            
-            {{-- Footer --}}
-            <div class="bg-gray-50 p-4 border-t border-gray-100 flex justify-end gap-2">
-                <button type="button" onclick="closeAddCategoryModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors">
-                    Batal
-                </button>
-                <button type="submit" id="btn_submit_category" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold text-[13px] px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                    <span id="spinner_category" class="hidden"><i class="fa-solid fa-circle-notch fa-spin text-white"></i></span>
-                    Simpan Kategori
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <div id="batches-data-container" data-batches="{{ json_encode($batches) }}" class="hidden"></div>
 
@@ -655,253 +317,7 @@
             showBatchDetail(id, name, code);
             return;
         }
-
-        const editBtn = e.target.closest('.btn-edit-medicine');
-        if (editBtn) {
-            const data = {
-                id: editBtn.dataset.id,
-                code: editBtn.dataset.code,
-                name: editBtn.dataset.name,
-                categoryId: editBtn.dataset.category_id,
-                groupId: editBtn.dataset.group_id,
-                unitId: editBtn.dataset.unit_id,
-                purchasePrice: editBtn.dataset.purchase_price,
-                sellingPrice: editBtn.dataset.selling_price,
-                minStock: editBtn.dataset.min_stock,
-                totalStock: editBtn.dataset.total_stock,
-                firstBatchNumber: editBtn.dataset.first_batch_number,
-                firstExpiryDate: editBtn.dataset.first_expiry_date,
-                description: editBtn.dataset.description,
-                requiresPrescription: editBtn.dataset.requires_prescription
-            };
-            openEditMedicineModal(data);
-            return;
-        }
     });
-
-    // Add Medicine Modal functions
-    function openAddMedicineModal() {
-        const modal = document.getElementById('addMedicineModal');
-        const card = document.getElementById('addMedicineCard');
-        
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            card.classList.remove('scale-95', 'opacity-0');
-            card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-
-    function closeAddMedicineModal() {
-        const modal = document.getElementById('addMedicineModal');
-        const card = document.getElementById('addMedicineCard');
-        
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 200);
-    }
-
-    // Edit Medicine Modal functions
-    function openEditMedicineModal(data) {
-        const modal = document.getElementById('editMedicineModal');
-        const card = document.getElementById('editMedicineCard');
-        
-        // Populate inputs
-        document.getElementById('editMedicineForm').action = '/stok-obat/' + data.id;
-        document.getElementById('editMedicineSubtitle').innerText = 'Kode: ' + data.code;
-        document.getElementById('edit_code').value = data.code;
-        document.getElementById('edit_name').value = data.name;
-        document.getElementById('edit_category_id').value = data.categoryId;
-        document.getElementById('edit_group_id').value = data.groupId;
-        document.getElementById('edit_unit_id').value = data.unitId;
-        document.getElementById('edit_purchase_price').value = Math.round(data.purchasePrice);
-        document.getElementById('edit_selling_price').value = Math.round(data.sellingPrice);
-        document.getElementById('edit_min_stock').value = data.minStock;
-        document.getElementById('edit_initial_stock').value = data.totalStock || 0;
-        document.getElementById('edit_batch_number').value = data.firstBatchNumber || '';
-        document.getElementById('edit_expiry_date').value = data.firstExpiryDate || '';
-        document.getElementById('edit_description').value = data.description || '';
-        document.getElementById('edit_requires_prescription').checked = data.requiresPrescription === '1';
-        
-        // Dynamic validate run immediately
-        const event = new Event('input');
-        document.getElementById('edit_initial_stock').dispatchEvent(event);
-
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            card.classList.remove('scale-95', 'opacity-0');
-            card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-
-    function closeEditMedicineModal() {
-        const modal = document.getElementById('editMedicineModal');
-        const card = document.getElementById('editMedicineCard');
-        
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 200);
-    }
-
-    // Add Category AJAX functions
-    let categoryTargetDropdownId = null;
-
-    function openAddCategoryModal(targetDropdownId = null) {
-        categoryTargetDropdownId = targetDropdownId;
-        
-        const modal = document.getElementById('addCategoryModal');
-        const card = document.getElementById('addCategoryCard');
-        
-        // Reset form
-        document.getElementById('addCategoryForm').reset();
-        document.getElementById('category_error_alert').classList.add('hidden');
-        
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            card.classList.remove('scale-95', 'opacity-0');
-            card.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-
-    function closeAddCategoryModal() {
-        const modal = document.getElementById('addCategoryModal');
-        const card = document.getElementById('addCategoryCard');
-        
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 200);
-    }
-
-    function submitCategoryForm(event) {
-        event.preventDefault();
-        
-        const form = document.getElementById('addCategoryForm');
-        const spinner = document.getElementById('spinner_category');
-        const submitBtn = document.getElementById('btn_submit_category');
-        const errorAlert = document.getElementById('category_error_alert');
-        const errorText = document.getElementById('category_error_text');
-        
-        // Show spinner and disable button
-        spinner.classList.remove('hidden');
-        submitBtn.disabled = true;
-        errorAlert.classList.add('hidden');
-        
-        const formData = new FormData(form);
-        
-        fetch("{{ route('categories.store') }}", {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json().then(data => ({ status: response.status, body: data })))
-        .then(res => {
-            spinner.classList.add('hidden');
-            submitBtn.disabled = false;
-            
-            if (res.status === 200 && res.body.success) {
-                const category = res.body.category;
-                
-                // Add to dropdowns
-                const dropdowns = ['add_category_id', 'edit_category_id'];
-                dropdowns.forEach(id => {
-                    const select = document.getElementById(id);
-                    if (select) {
-                        const option = document.createElement('option');
-                        option.value = category.id;
-                        option.text = category.name;
-                        select.appendChild(option);
-                    }
-                });
-
-                // Also add to category filter select (name is the value there)
-                const filterSelect = document.querySelector('select[name="category"]');
-                if (filterSelect) {
-                    const option = document.createElement('option');
-                    option.value = category.name;
-                    option.text = category.name;
-                    filterSelect.appendChild(option);
-                }
-                
-                // Select in active dropdown
-                if (categoryTargetDropdownId) {
-                    const select = document.getElementById(categoryTargetDropdownId);
-                    if (select) {
-                        select.value = category.id;
-                    }
-                }
-                
-                closeAddCategoryModal();
-                showToast(res.body.message || 'Kategori baru berhasil ditambahkan!');
-            } else {
-                errorText.innerText = res.body.message || 'Terjadi kesalahan saat menyimpan kategori.';
-                errorAlert.classList.remove('hidden');
-            }
-        })
-        .catch(error => {
-            spinner.classList.add('hidden');
-            submitBtn.disabled = false;
-            errorText.innerText = 'Koneksi gagal atau terjadi kesalahan internal server.';
-            errorAlert.classList.remove('hidden');
-            console.error('Error:', error);
-        });
-    }
-
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-5 right-5 bg-teal-800 text-white rounded-xl shadow-lg px-5 py-3.5 z-[100] flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300';
-        toast.innerHTML = `
-            <i class="fa-solid fa-circle-check text-emerald-400 text-[18px]"></i>
-            <span class="text-[13px] font-medium">${message}</span>
-        `;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.remove('translate-y-10', 'opacity-0');
-        }, 10);
-        
-        setTimeout(() => {
-            toast.classList.add('translate-y-10', 'opacity-0');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 4000);
-    }
-
-    // Toggle expiry date required status based on stock value
-    function toggleExpiryRequired(stockId, expiryId, starId) {
-        const stockInput = document.getElementById(stockId);
-        const expiryInput = document.getElementById(expiryId);
-        const star = document.getElementById(starId);
-        if (!stockInput || !expiryInput) return;
-
-        const checkValue = () => {
-            const stockVal = parseInt(stockInput.value) || 0;
-            if (stockVal > 0) {
-                expiryInput.setAttribute('required', 'required');
-                if (star) star.classList.remove('hidden');
-            } else {
-                expiryInput.removeAttribute('required');
-                if (star) star.classList.add('hidden');
-            }
-        };
-
-        stockInput.addEventListener('input', checkValue);
-        stockInput.addEventListener('change', checkValue);
-        checkValue();
-    }
-
-    toggleExpiryRequired('add_initial_stock', 'add_expiry_date', 'add_expiry_star');
-    toggleExpiryRequired('edit_initial_stock', 'edit_expiry_date', 'edit_expiry_star');
 
     function showBatchDetail(medicineId, medicineName, medicineCode) {
         const modal = document.getElementById('batchModal');
@@ -970,6 +386,7 @@
 
         loading.classList.add('hidden');
         content.classList.remove('hidden');
+        content.className = 'block space-y-4';
     }
 
     function closeModal() {

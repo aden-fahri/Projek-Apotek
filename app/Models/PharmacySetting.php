@@ -29,10 +29,8 @@ class PharmacySetting extends Model
                 'address'          => 'Jl. Kesehatan No. 1, Kota',
                 'phone'            => '021-0000000',
                 'email'            => 'apotek@mediflow.id',
-                'license_number'      => 'SIA-000/000/00',
-                'pharmacist_name'     => 'Apt. Nama Apoteker, S.Farm.',
-                'pharmacist_license'  => 'SIPA-000/000/00',
-                'footer_note'      => 'Terima kasih telah mempercayai pelayanan kami.',
+                'license_number'   => 'SIA-000/000/00',
+                'tax_rate'         => 0.00,
             ]
         );
     }
