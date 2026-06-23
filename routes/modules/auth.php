@@ -22,6 +22,7 @@ Route::prefix('employees')
         Route::get('/{employee}/edit',    [EmployeeController::class, 'edit'])->name('edit');
         Route::put('/{employee}',         [EmployeeController::class, 'update'])->name('update');
         Route::delete('/{employee}',      [EmployeeController::class, 'destroy'])->name('destroy');
+        Route::post('/{employee}/toggle-status', [EmployeeController::class, 'toggleStatus'])->name('toggle-status');
     });
 
 // Alias "pengguna" ke employees

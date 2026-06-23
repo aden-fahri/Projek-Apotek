@@ -83,8 +83,8 @@ class EmployeeController extends Controller
             'email'     => $validated['username'] . '@apotek.local', // Auto-generate dummy email
             'password'  => $validated['password'],
             'role'      => $validated['role'],
-            'telepon'   => $validated['telepon'] ?? null,
-            'alamat'    => $validated['alamat'] ?? null,
+            'phone'     => $validated['telepon'] ?? null,
+            'address'   => $validated['alamat'] ?? null,
             'is_active' => true,
         ]);
 
@@ -126,8 +126,8 @@ class EmployeeController extends Controller
             'name'    => $validated['name'],
             'username'=> $validated['username'],
             'role'    => $validated['role'],
-            'telepon' => $validated['telepon'] ?? null,
-            'alamat'  => $validated['alamat'] ?? null,
+            'phone'   => $validated['telepon'] ?? null,
+            'address' => $validated['alamat'] ?? null,
         ];
 
         // Only update password if filled
@@ -152,5 +152,21 @@ class EmployeeController extends Controller
         $employee->delete();
 
         return redirect()->route('employees.index')->with('success', 'Karyawan berhasil dihapus.');
+    }
+
+    /**
+     * Toggle the active status of the employee.
+     */
+    public function toggleStatus(User $employee)
+    {
+        if (auth()->id() === $employee->id) {
+            return redirect()->route('employees.index')->withErrors(['Anda tidak dapat menonaktifkan akun Anda sendiri yang sedang digunakan.']);
+        }
+
+        $employee->update([
+            'is_active' => !$employee->is_active
+        ]);
+
+        return redirect()->route('employees.index')->with('success', 'Status keaktifan karyawan berhasil diubah.');
     }
 }

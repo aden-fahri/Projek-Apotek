@@ -662,7 +662,7 @@
                                         <!-- Cancel Transaksi (Admin Only) -->
                                         @if(Auth::user()->role === 'admin' && $trx->status !== 'cancelled')
                                             <form action="{{ route('riwayat-transaksi.cancel', $trx->id) }}" method="POST"
-                                                onsubmit="return confirm('Apakah Anda yakin ingin membatalkan transaksi {{ $trx->invoice_number }}? Tindakan ini akan mengembalikan stok obat.')"
+                                                onsubmit="confirmDelete(event, this, 'Batalkan Transaksi?', 'Apakah Anda yakin ingin membatalkan transaksi {{ $trx->invoice_number }}? Tindakan ini akan mengembalikan stok obat.')"
                                                 style="margin: 0; display: inline;">
                                                 @csrf
                                                 <button type="submit" class="btn-icon btn-cancel" title="Batalkan Transaksi">

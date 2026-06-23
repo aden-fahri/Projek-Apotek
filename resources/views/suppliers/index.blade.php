@@ -139,7 +139,7 @@
                                     </button>
 
                                     <!-- Delete Button -->
-                                    <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus supplier {{ addslashes($supplier->name) }}?')" style="margin: 0; display: inline;">
+                                    <form action="{{ route('suppliers.destroy', $supplier->id) }}" method="POST" onsubmit="confirmDelete(event, this, 'Hapus Supplier?', 'Apakah Anda yakin ingin menghapus supplier {{ addslashes($supplier->name) }}?')" style="margin: 0; display: inline;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-action delete" title="Hapus Supplier">

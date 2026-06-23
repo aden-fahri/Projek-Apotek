@@ -1,23 +1,35 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Laba')
+@section('title', 'Buku Besar')
 
 @push('styles')
     @vite(['resources/css/laporan.css'])
+    <style>
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 999; display: none;
+            align-items: center; justify-content: center; backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: #fff; width: 500px; max-width: 90%; border-radius: 8px;
+            padding: 20px; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .modal-header { font-size: 18px; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .modal-close { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 20px; color: #64748b; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .detail-table th, .detail-table td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; font-size: 13.5px; }
+        .detail-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+    </style>
 @endpush
 
 @section('content')
 {{-- ===== PAGE HEADER ===== --}}
 <div class="page-header">
     <div>
-        <h1 class="page-title">Laporan Laba</h1>
-        <p class="page-subtitle">Ringkasan laba kotor dan bersih periode berjalan.</p>
+        <h1 class="page-title">Buku Besar</h1>
+        <p class="page-subtitle">Laporan komprehensif seluruh arus kas masuk dan keluar.</p>
     </div>
     <div style="display:flex; gap:10px;">
-        <button type="button" onclick="document.getElementById('filter-laba').classList.toggle('d-none')"
-                class="btn btn-outline" id="btn-filter-toggle">
-            <i class="fa-solid fa-filter mr-1"></i> Filter
-        </button>
         <a href="{{ route('admin.laporan.laba.export', request()->query()) }}"
            id="btn-export-laba"
            class="btn btn-excel">
@@ -43,6 +55,15 @@
                            style="border:none; background:transparent; font-family:inherit; font-size:13.5px; outline:none;">
                 </div>
             </div>
+            <div class="filter-field">
+                <label class="filter-label">Jenis Transaksi</label>
+                <select name="jenis" class="form-input" style="width: 100%; font-size: 13.5px;">
+                    <option value="Semua" {{ $filterJenis == 'Semua' ? 'selected' : '' }}>Semua Jenis</option>
+                    <option value="Jual Obat" {{ $filterJenis == 'Jual Obat' ? 'selected' : '' }}>Penjualan (Masuk)</option>
+                    <option value="Beli Obat" {{ $filterJenis == 'Beli Obat' ? 'selected' : '' }}>Pembelian (Keluar)</option>
+                    <option value="Retur Obat" {{ $filterJenis == 'Retur Obat' ? 'selected' : '' }}>Retur (Masuk)</option>
+                </select>
+            </div>
             <div class="filter-field" style="justify-content:flex-end;">
                 <label class="filter-label" style="visibility:hidden;">Aksi</label>
                 <div class="filter-actions">
@@ -54,113 +75,96 @@
     </form>
 </div>
 
-{{-- ===== KARTU LABA KOTOR & BERSIH ===== --}}
+{{-- ===== KARTU RINGKASAN ===== --}}
 <div class="laba-grid">
-
-    {{-- LABA KOTOR --}}
-    <div class="laba-card">
-        <div style="float:right; font-size:28px; color:rgba(13,148,136,0.2);"><i class="fa-solid fa-chart-line"></i></div>
-        <div class="laba-card-label">Laba Kotor</div>
-        <div class="laba-card-value">Rp {{ number_format($labaKotor, 0, ',', '.') }}</div>
-        @if ($pctLabaKotor >= 0)
-            <div class="laba-badge">↑ {{ $pctLabaKotor }}% vs bulan lalu</div>
-        @else
-            <div class="laba-badge" style="background:rgba(239,68,68,.1); color:#dc2626;">↓ {{ abs($pctLabaKotor) }}% vs bulan lalu</div>
-        @endif
-        <div class="laba-detail">
-            Total Penjualan: <strong>Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</strong>
-            &nbsp;–&nbsp; Total HPP: <strong>Rp {{ number_format($totalHpp, 0, ',', '.') }}</strong>
-        </div>
+    {{-- UANG MASUK --}}
+    <div class="laba-card" style="border-top: 4px solid #10b981;">
+        <div style="float:right; font-size:28px; color:rgba(16,185,129,0.2);"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="laba-card-label">Total Uang Masuk</div>
+        <div class="laba-card-value" style="color: #059669;">Rp {{ number_format($totalDebit, 0, ',', '.') }}</div>
+        <div class="laba-detail">Penjualan Kasir & Retur</div>
     </div>
 
-    {{-- LABA BERSIH --}}
-    <div class="laba-card">
-        <div style="float:right; font-size:28px; color:rgba(13,148,136,0.2);"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-        <div class="laba-card-label">Laba Bersih</div>
-        <div class="laba-card-value">Rp {{ number_format($labaBersih, 0, ',', '.') }}</div>
-        <div class="laba-badge" style="background:rgba(34,197,94,.1); color:#16a34a;">
-            ✓ Sudah dikurangi return
-        </div>
-        <div class="laba-detail">
-            Laba Kotor: <strong>Rp {{ number_format($labaKotor, 0, ',', '.') }}</strong>
-            &nbsp;–&nbsp; Total Return: <strong>Rp {{ number_format($totalReturn, 0, ',', '.') }}</strong>
-        </div>
+    {{-- UANG KELUAR --}}
+    <div class="laba-card" style="border-top: 4px solid #ef4444;">
+        <div style="float:right; font-size:28px; color:rgba(239,68,68,0.2);"><i class="fa-solid fa-arrow-trend-down"></i></div>
+        <div class="laba-card-label">Total Uang Keluar</div>
+        <div class="laba-card-value" style="color: #dc2626;">Rp {{ number_format($totalKredit, 0, ',', '.') }}</div>
+        <div class="laba-detail">Pembelian ke Supplier</div>
     </div>
 
+    {{-- SALDO AKHIR --}}
+    <div class="laba-card" style="border-top: 4px solid #3b82f6;">
+        <div style="float:right; font-size:28px; color:rgba(59,130,246,0.2);"><i class="fa-solid fa-wallet"></i></div>
+        <div class="laba-card-label">Saldo Akhir</div>
+        <div class="laba-card-value" style="color: #2563eb;">Rp {{ number_format($saldoBerjalan, 0, ',', '.') }}</div>
+        <div class="laba-detail">Posisi Saldo per Tanggal {{ \Carbon\Carbon::parse($sampai)->format('d M Y') }}</div>
+    </div>
 </div>
 
-{{-- ===== PENJELASAN PERHITUNGAN LABA ===== --}}
-<div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 8px; margin-bottom: 24px;">
-    <h4 style="margin: 0 0 8px 0; color: #1e3a8a; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-circle-info"></i> Informasi Perhitungan Laba
-    </h4>
-    <ul style="margin: 0; padding-left: 20px; color: #1e40af; font-size: 13px; line-height: 1.6;">
-        <li><strong>Laba Kotor:</strong> Dihitung dari <em>(Harga Jual - Harga Modal saat transaksi) x Jumlah Terjual</em> pada transaksi berstatus selesai.</li>
-        <li><strong>Laba Bersih:</strong> Dihitung dari <em>Laba Kotor - Total Nilai Return</em> (pengembalian barang ke supplier).</li>
-        <li><strong>Harga Modal (HPP):</strong> Menggunakan harga modal obat pada <strong>saat transaksi terjadi</strong>, bukan harga modal obat saat ini, sehingga laba tetap akurat meskipun harga modal obat berubah di kemudian hari.</li>
-    </ul>
-</div>
-
-{{-- ===== TABEL RINCIAN PER OBAT ===== --}}
+{{-- ===== TABEL BUKU BESAR ===== --}}
 <div class="card">
     <div class="card-header">
-        <span class="card-header-title">Rincian per Obat</span>
-        <div class="table-search-wrap">
-            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <form method="GET" action="{{ route('admin.laporan.laba') }}" id="form-cari-obat">
-                <input type="hidden" name="mulai_tanggal" value="{{ $mulai }}">
-                <input type="hidden" name="sampai_tanggal" value="{{ $sampai }}">
-                <input type="text" name="cari_obat" id="input-cari-obat"
-                       value="{{ $cariObat }}"
-                       placeholder="Cari nama obat..."
-                       onchange="this.form.submit()">
-            </form>
-        </div>
+        <span class="card-header-title">Rincian Transaksi</span>
     </div>
 
     <div class="table-wrapper">
-        <table class="table" id="tabel-rincian-laba">
+        <table class="table" id="tabel-buku-besar">
             <thead>
                 <tr>
-                    <th>Nama Obat</th>
-                    <th style="text-align:right;">Jumlah Terjual</th>
-                    <th style="text-align:right;">HPP (AVG)</th>
-                    <th style="text-align:right;">Harga Jual (AVG)</th>
-                    <th style="text-align:right;">Total Laba</th>
+                    <th>Tanggal</th>
+                    <th>No. Ref</th>
+                    <th>Jenis</th>
+                    <th>Keterangan</th>
+                    <th>Oleh</th>
+                    <th style="text-align:right;">Masuk</th>
+                    <th style="text-align:right;">Keluar</th>
+                    <th style="text-align:right;">Saldo</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($rincianPerObat as $item)
+                <tr style="background-color: #f8fafc; font-weight: 600;">
+                    <td colspan="5" style="text-align:right; font-size: 13px;">SALDO AWAL SEBELUM {{ strtoupper(\Carbon\Carbon::parse($mulai)->translatedFormat('d M Y')) }}</td>
+                    <td style="text-align:right; color: #94a3b8;">-</td>
+                    <td style="text-align:right; color: #94a3b8;">-</td>
+                    <td style="text-align:right; color: #0f172a; font-size: 14px;">Rp {{ number_format($saldoAwal, 0, ',', '.') }}</td>
+                </tr>
+
+                @forelse ($bukuBesar as $item)
                 <tr>
+                    <td style="white-space: nowrap;">{{ \Carbon\Carbon::parse($item['tanggal'])->format('d/m/Y H:i') }}</td>
                     <td>
-                        <div class="medicine-name">{{ $item->medicine?->name ?? '—' }}</div>
-                        <div class="medicine-sub">
-                            {{ $item->medicine?->unit?->abbreviation ?? '' }}
-                            @if ($item->medicine?->category)
-                                • Kategori: {{ $item->medicine->category->name }}
-                            @endif
-                        </div>
+                        <a href="javascript:void(0)" onclick="showDetailModal('{{ $item['referensi'] }}', '{{ json_encode($item['rincian']) }}')" style="color: #2563eb; font-weight: 600; text-decoration: underline;">
+                            {{ $item['referensi'] }}
+                        </a>
                     </td>
-                    <td style="text-align:right;">
-                        {{ number_format($item->total_qty, 0, ',', '.') }}
-                        {{ $item->medicine?->unit?->abbreviation ?? '' }}
+                    <td>
+                        @if($item['jenis'] == 'Jual Obat')
+                            <span class="badge" style="background:#dcfce7; color:#166534; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">Penjualan</span>
+                        @elseif($item['jenis'] == 'Beli Obat')
+                            <span class="badge" style="background:#fee2e2; color:#991b1b; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">Pembelian</span>
+                        @else
+                            <span class="badge" style="background:#fef9c3; color:#854d0e; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">Retur</span>
+                        @endif
                     </td>
-                    <td style="text-align:right; color:var(--color-text-muted);">
-                        Rp {{ number_format($item->avg_hpp, 0, ',', '.') }}
+                    <td>{{ $item['keterangan'] }}</td>
+                    <td>{{ $item['oleh'] }}</td>
+                    <td style="text-align:right; color: #16a34a; font-weight: 500;">
+                        {{ $item['debit'] > 0 ? 'Rp ' . number_format($item['debit'], 0, ',', '.') : '-' }}
                     </td>
-                    <td style="text-align:right; color:var(--color-text-muted);">
-                        Rp {{ number_format($item->avg_jual, 0, ',', '.') }}
+                    <td style="text-align:right; color: #dc2626; font-weight: 500;">
+                        {{ $item['kredit'] > 0 ? 'Rp ' . number_format($item['kredit'], 0, ',', '.') : '-' }}
                     </td>
-                    <td style="text-align:right;" class="total-laba">
-                        Rp {{ number_format($item->total_laba, 0, ',', '.') }}
+                    <td style="text-align:right; font-weight: 600; color: #334155; font-size: 13.5px;">
+                        Rp {{ number_format($item['saldo'], 0, ',', '.') }}
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5">
-                        <div class="empty-state">
-                            <div class="empty-icon text-gray-300" style="font-size: 48px; margin-bottom: 16px;"><i class="fa-solid fa-box-open"></i></div>
-                            <p>Tidak ada data penjualan pada periode ini.</p>
+                    <td colspan="8">
+                        <div class="empty-state" style="text-align: center; padding: 40px;">
+                            <div class="empty-icon text-gray-300" style="font-size: 48px; margin-bottom: 16px;"><i class="fa-solid fa-folder-open"></i></div>
+                            <p style="color: #64748b;">Tidak ada transaksi pada periode dan jenis ini.</p>
                         </div>
                     </td>
                 </tr>
@@ -168,15 +172,64 @@
             </tbody>
         </table>
     </div>
-
-    {{-- PAGINATION --}}
-    @if ($rincianPerObat->hasPages())
-    <div class="pagination-wrapper">
-        <span>Menampilkan {{ $rincianPerObat->firstItem() }}–{{ $rincianPerObat->lastItem() }} dari {{ $rincianPerObat->total() }} data</span>
-        {{ $rincianPerObat->links('vendor.pagination.simple-teal') }}
-    </div>
-    @endif
 </div>
+
+{{-- MODAL DETAIL --}}
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeDetailModal()">&times;</span>
+        <div class="modal-header">Rincian Transaksi: <span id="modalRef"></span></div>
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th>Nama Obat</th>
+                    <th style="text-align:center;">Qty</th>
+                    <th style="text-align:right;">Harga</th>
+                    <th style="text-align:right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="detailBody">
+                <!-- Data akan diisi oleh JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
 @endsection
 
+@push('scripts')
+<script>
+    function showDetailModal(ref, rincianJson) {
+        document.getElementById('modalRef').innerText = ref;
+        let rincian = [];
+        try {
+            rincian = JSON.parse(rincianJson);
+        } catch(e) {
+            console.error(e);
+        }
 
+        let html = '';
+        if(rincian.length === 0) {
+            html = '<tr><td colspan="4" style="text-align:center;">Tidak ada rincian obat.</td></tr>';
+        } else {
+            rincian.forEach(item => {
+                let harga = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.harga);
+                let subtotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.subtotal);
+                
+                html += `<tr>
+                    <td>${item.nama_obat}</td>
+                    <td style="text-align:center;">${item.qty}</td>
+                    <td style="text-align:right;">${harga}</td>
+                    <td style="text-align:right; font-weight:600;">${subtotal}</td>
+                </tr>`;
+            });
+        }
+        document.getElementById('detailBody').innerHTML = html;
+        document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+</script>
+@endpush

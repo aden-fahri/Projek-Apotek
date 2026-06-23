@@ -19,20 +19,15 @@
         </div>
     @endif
 
-    <!-- Info Banner Penjelasan Stok Obat -->
-    <div class="bg-gradient-to-r from-cyan-800 to-teal-700 text-white rounded-xl p-5 shadow-sm flex items-center justify-between gap-6">
-        <div class="space-y-1">
-            <div class="flex items-center gap-2">
-                <span class="bg-cyan-600 text-white text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md tracking-wider">Definisi</span>
-                <h4 class="font-bold text-[15px]">📦 Apa itu Stok Obat & Batch?</h4>
-            </div>
-            <p class="text-[12.5px] text-cyan-100/90 leading-relaxed max-w-3xl">
-                Halaman ini menampilkan **jumlah stok fisik riil** dari masing-masing obat berdasarkan nomor batch dan tanggal kadaluwarsanya. Digunakan oleh Admin & Kasir untuk memantau obat yang menipis atau mendekati expired. Profil utama obat (nama, harga, kategori, dll.) dikelola oleh Admin di halaman <strong>Master Data Obat</strong>.
-            </p>
+    <!-- Header Section -->
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div class="flex flex-col gap-1">
+            <h1 class="text-[28px] font-bold text-gray-800 leading-tight">Stok Obat</h1>
+            <p class="text-[14px] font-medium text-gray-500">Daftar stok obat fisik apotek berdasarkan batch dan masa kadaluwarsa</p>
         </div>
         @if(auth()->user()->role === 'admin')
-        <a href="{{ route('data-obat') }}" class="bg-white hover:bg-cyan-50 text-cyan-800 font-bold text-[12.5px] px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-gear text-[14px]"></i> Kelola Katalog (Master) &rarr;
+        <a href="{{ route('data-obat') }}" class="bg-teal-600 hover:bg-teal-700 text-white font-bold text-[14px] px-5 py-3 rounded-lg shadow-sm transition-all flex items-center gap-2">
+            <i class="fa-solid fa-gear"></i> Kelola Data Obat
         </a>
         @endif
     </div>

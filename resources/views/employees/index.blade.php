@@ -617,10 +617,10 @@
                 <h1 class="header-title">Manajemen Karyawan</h1>
                 <p class="header-subtitle">Kelola akun dan akses karyawan apotek</p>
             </div>
-            <a href="{{ route('employees.create') }}" class="btn-add">
+            <button class="btn-add" onclick="openCreateModal()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Tambah Karyawan
-            </a>
+            </button>
         </div>
 
         <!-- Metric Cards -->
@@ -723,10 +723,29 @@
                             <td>{{ $employee->created_at ? $employee->created_at->format('d M Y') : '-' }}</td>
                             <td>
                                 <div class="action-cell">
-                                    <a href="{{ route('employees.edit', $employee->id) }}" class="btn-action edit" title="Edit Karyawan">
+                                    <form action="{{ route('employees.toggle-status', $employee->id) }}" method="POST" style="margin: 0; display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn-action {{ $employee->is_active ? 'delete' : 'edit' }}" title="{{ $employee->is_active ? 'Nonaktifkan' : 'Aktifkan' }} Akun">
+                                            @if($employee->is_active)
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                            @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                                            @endif
+                                        </button>
+                                    </form>
+
+                                    <button type="button" class="btn-action edit" title="Edit Karyawan"
+                                            data-id="{{ $employee->id }}"
+                                            data-name="{{ $employee->name }}"
+                                            data-username="{{ $employee->username }}"
+                                            data-role="{{ $employee->role }}"
+                                            data-telepon="{{ $employee->phone }}"
+                                            data-alamat="{{ $employee->address }}"
+                                            onclick="openEditModal(this)">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                    </a>
-                                    <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus karyawan {{ addslashes($employee->name) }}?')" style="margin: 0; display: inline;">
+                                    </button>
+                                    
+                                    <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" onsubmit="confirmDelete(event, this, 'Hapus Pengguna?', 'Apakah Anda yakin ingin menghapus pengguna {{ addslashes($employee->name) }}?')" style="margin: 0; display: inline;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-action delete" title="Hapus Karyawan">
@@ -789,12 +808,12 @@
         </div>
     </div>
 
-    <!-- Modal Background overlay -->
-    <div class="modal-overlay" id="addEmployeeModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
-        <div class="modal-content" style="background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+    <!-- CREATE EMPLOYEE MODAL -->
+    <div class="modal-overlay" id="create-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 16px;">
                 <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">Tambah Karyawan Baru</h3>
-                <button type="button" onclick="closeModal('addEmployeeModal')" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;">&times;</button>
+                <button type="button" onclick="closeCreateModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;">&times;</button>
             </div>
             
             <form action="{{ route('employees.store') }}" method="POST">
@@ -849,8 +868,77 @@
                     </div>
                     
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-                        <button type="button" onclick="closeModal('addEmployeeModal')" style="padding: 10px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Batal</button>
+                        <button type="button" onclick="closeCreateModal()" style="padding: 10px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Batal</button>
                         <button type="submit" style="padding: 10px 16px; border: none; background: #0D9488; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Simpan Karyawan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT EMPLOYEE MODAL -->
+    <div class="modal-overlay" id="edit-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2937;">Ubah Data Karyawan</h3>
+                <button type="button" onclick="closeEditModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            
+            <form action="" method="POST" id="edit-form">
+                @csrf
+                @method('PUT')
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Nama Lengkap <span style="color:red;">*</span></label>
+                        <input type="text" name="name" id="edit-name" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Username <span style="color:red;">*</span></label>
+                        <input type="text" name="username" id="edit-username" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Role <span style="color:red;">*</span></label>
+                            <select name="role" id="edit-role" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <option value="kasir">Kasir</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">No. Telepon <span style="color: #64748b; font-weight: normal; font-size: 13px;">(Opsional)</span></label>
+                            <input type="text" name="telepon" id="edit-telepon" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Password Baru <span style="color: #64748b; font-weight: normal; font-size: 13px;">(Opsional)</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" id="edit_password" name="password" style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <button type="button" class="password-toggle" onclick="togglePassword('edit_password', this)" aria-label="Tampilkan password" style="right: 8px;">
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Konfirmasi Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="edit_password_confirmation" name="password_confirmation" style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <button type="button" class="password-toggle" onclick="togglePassword('edit_password_confirmation', this)" aria-label="Tampilkan konfirmasi password" style="right: 8px;">
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Alamat <span style="color: #64748b; font-weight: normal; font-size: 13px;">(Opsional)</span></label>
+                        <textarea name="alamat" id="edit-alamat" rows="2" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                        <button type="button" onclick="closeEditModal()" style="padding: 10px 16px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Batal</button>
+                        <button type="submit" style="padding: 10px 16px; border: none; background: #0D9488; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">Simpan Perubahan</button>
                     </div>
                 </div>
             </form>
@@ -892,6 +980,53 @@
                 }, 5000);
             });
         });
+
+        // Modal Functions
+        function openCreateModal() {
+            document.getElementById('create-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function openEditModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const username = btn.getAttribute('data-username');
+            const role = btn.getAttribute('data-role');
+            const telepon = btn.getAttribute('data-telepon');
+            const alamat = btn.getAttribute('data-alamat');
+
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-username').value = username;
+            document.getElementById('edit-role').value = role;
+            document.getElementById('edit-telepon').value = telepon || '';
+            document.getElementById('edit-alamat').value = alamat || '';
+            
+            document.getElementById('edit-form').action = `/employees/${id}`;
+
+            document.getElementById('edit-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const createModal = document.getElementById('create-modal');
+            const editModal = document.getElementById('edit-modal');
+            if (event.target == createModal) {
+                closeCreateModal();
+            } else if (event.target == editModal) {
+                closeEditModal();
+            }
+        }
     </script>
 @endpush
 

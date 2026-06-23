@@ -33,4 +33,10 @@ class StockReturn extends Model
     {
         return $this->hasMany(StockReturnDetail::class);
     }
+
+    // Relasi ke user (admin yang melakukan retur)
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

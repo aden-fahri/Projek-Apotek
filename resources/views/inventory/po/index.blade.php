@@ -88,7 +88,7 @@
                                             <i class="fa-solid fa-pen-to-square text-[13px]"></i>
                                         </a>
                                         <form action="{{ route('purchase-order.cancel', $po->id) }}" method="POST" class="inline" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin membatalkan Purchase Order ini? Seluruh stok terkait akan dihapus.')">
+                                              onsubmit="confirmDelete(event, this, 'Batalkan PO?', 'Apakah Anda yakin ingin membatalkan Purchase Order ini? Seluruh stok terkait akan dihapus.')">
                                             @csrf
                                             <button type="submit" 
                                                     class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg p-1.5 transition-colors" 
@@ -98,7 +98,7 @@
                                         </form>
                                     @else
                                         <form action="{{ route('purchase-order.destroy', $po->id) }}" method="POST" class="inline" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus secara permanen Purchase Order ini?')">
+                                              onsubmit="confirmDelete(event, this, 'Hapus PO?', 'Apakah Anda yakin ingin menghapus secara permanen Purchase Order ini?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" 
