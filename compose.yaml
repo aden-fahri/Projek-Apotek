@@ -14,6 +14,7 @@ services:
       DB_DATABASE: apotek_db
       DB_USERNAME: root
       DB_PASSWORD: ""
+      AUTO_LOGIN: "false"
     depends_on:
       - db
 
@@ -24,7 +25,7 @@ services:
       MYSQL_DATABASE: apotek_db
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
-      - 3306:3306
+      - 3307:3306
     volumes:
       - db-data:/var/lib/mysql
       - ./database/apotek_db.sql:/docker-entrypoint-initdb.d/apotek_db.sql

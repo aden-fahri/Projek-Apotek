@@ -17,7 +17,7 @@ USE `apotek_db`;
 CREATE TABLE `users` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL COMMENT 'Nama lengkap pengguna',
-    `username` VARCHAR(255) NULL COMMENT 'Username untuk login',
+    `username` VARCHAR(255) NOT NULL COMMENT 'Username untuk login',
     `email` VARCHAR(255) NOT NULL COMMENT 'Email untuk login',
     `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
     `password` VARCHAR(255) NOT NULL COMMENT 'Password terenkripsi (bcrypt)',
