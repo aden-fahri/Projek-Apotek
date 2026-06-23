@@ -24,11 +24,11 @@
         </a>
         <a href="{{ route('stok-obat') }}" class="{{ request()->routeIs('stok-obat') ? 'active' : '' }}">
             <i class="fa-solid fa-capsules nav-icon"></i>
-            Data Obat
+            Stok Obat
         </a>
         <a href="{{ route('kasir') }}" class="{{ request()->routeIs('kasir') ? 'active' : '' }}">
-            <i class="fa-solid fa-users nav-icon"></i>
-            Data Pasien
+            <i class="fa-solid fa-cash-register nav-icon"></i>
+            Sistem Kasir
         </a>
         <a href="{{ route('riwayat-transaksi') }}" class="{{ request()->routeIs('riwayat-transaksi') ? 'active' : '' }}">
             <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
