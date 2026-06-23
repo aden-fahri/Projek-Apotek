@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MedicineGroupController;
+use App\Http\Controllers\UnitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,15 +29,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('suppliers/{supplier}/toggle-status', [SupplierController::class, 'toggleStatus'])->name('suppliers.toggle-status');
 
     // F-06: Kategori Obat
-    Route::get('/kategori-obat',    fn() => redirect()->route('dashboard.admin'))->name('kategori-obat');
+    Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
+    Route::get('/kategori-obat', fn() => redirect()->route('categories.index'))->name('kategori-obat');
 
     // F-07: Golongan Obat
-    Route::get('/golongan-obat',    fn() => redirect()->route('dashboard.admin'))->name('golongan-obat');
+    Route::resource('medicine-groups', MedicineGroupController::class)->except(['show', 'create', 'edit']);
+    Route::get('/golongan-obat', fn() => redirect()->route('medicine-groups.index'))->name('golongan-obat');
 
     // F-08: Satuan Obat
-    Route::get('/satuan-obat',      fn() => redirect()->route('dashboard.admin'))->name('satuan-obat');
+    Route::resource('units', UnitController::class)->except(['show', 'create', 'edit']);
+    Route::get('/satuan-obat', fn() => redirect()->route('units.index'))->name('satuan-obat');
 
     // F-09: Data Obat
-    Route::get('/data-obat',        fn() => redirect()->route('dashboard.admin'))->name('data-obat');
+    Route::get('/data-obat', fn() => redirect()->route('dashboard.admin'))->name('data-obat');
 
 });

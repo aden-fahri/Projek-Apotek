@@ -23,6 +23,9 @@
                 
                 ['type' => 'header', 'label' => 'MASTER DATA'],
                 ['type' => 'link', 'route' => 'supplier', 'icon' => 'fa-prescription-bottle', 'label' => 'Supplier'],
+                ['type' => 'link', 'route' => 'categories.index', 'icon' => 'fa-tags', 'label' => 'Kategori Obat'],
+                ['type' => 'link', 'route' => 'medicine-groups.index', 'icon' => 'fa-layer-group', 'label' => 'Golongan Obat'],
+                ['type' => 'link', 'route' => 'units.index', 'icon' => 'fa-ruler', 'label' => 'Satuan Obat'],
                 ['type' => 'link', 'route' => 'stok-obat', 'icon' => 'fa-box', 'label' => 'Stok Obat'],
                 
                 ['type' => 'header', 'label' => 'TRANSAKSI'],
@@ -51,6 +54,12 @@
                         $isActive = request()->routeIs('dashboard.admin');
                     } elseif ($route === 'supplier') {
                         $isActive = request()->routeIs('supplier') || request()->routeIs('suppliers.*');
+                    } elseif ($route === 'categories.index') {
+                        $isActive = request()->routeIs('categories.*');
+                    } elseif ($route === 'medicine-groups.index') {
+                        $isActive = request()->routeIs('medicine-groups.*');
+                    } elseif ($route === 'units.index') {
+                        $isActive = request()->routeIs('units.*');
                     } elseif ($route === 'stok-obat') {
                         $isActive = request()->routeIs('stok-obat') || request()->routeIs('stok-obat.*') || request()->routeIs('medicines.*');
                     } elseif ($route === 'purchase-order') {
