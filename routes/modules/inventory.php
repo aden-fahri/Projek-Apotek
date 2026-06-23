@@ -23,17 +23,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/purchase-order', [InventoryController::class, 'poIndex'])->name('purchase-order');
         Route::get('/purchase-order/create', [InventoryController::class, 'poCreate'])->name('purchase-order.create');
         Route::post('/purchase-order', [InventoryController::class, 'poStore'])->name('purchase-order.store');
+        Route::get('/purchase-order/{id}/edit', [InventoryController::class, 'poEdit'])->name('purchase-order.edit');
+        Route::put('/purchase-order/{id}', [InventoryController::class, 'poUpdate'])->name('purchase-order.update');
+        Route::post('/purchase-order/{id}/cancel', [InventoryController::class, 'poCancel'])->name('purchase-order.cancel');
+        Route::delete('/purchase-order/{id}', [InventoryController::class, 'poDestroy'])->name('purchase-order.destroy');
 
         // F-14: Return Obat
         Route::get('/return-obat', [InventoryController::class, 'returnIndex'])->name('return-obat');
         Route::get('/return-obat/create', [InventoryController::class, 'returnCreate'])->name('return-obat.create');
         Route::post('/return-obat', [InventoryController::class, 'returnStore'])->name('return-obat.store');
 
-        // CRUD Medicines (Produk Obat)
-        Route::post('/stok-obat', [InventoryController::class, 'storeMedicine'])->name('medicines.store');
-        Route::put('/stok-obat/{id}', [InventoryController::class, 'updateMedicine'])->name('medicines.update');
-        Route::delete('/stok-obat/{id}', [InventoryController::class, 'destroyMedicine'])->name('medicines.destroy');
-        Route::post('/stok-obat/kategori', [InventoryController::class, 'storeCategory'])->name('categories.store');
     });
 
     // API helper for dynamic JavaScript dropdown

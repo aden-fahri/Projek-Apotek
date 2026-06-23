@@ -19,6 +19,8 @@ use App\Http\Controllers\UnitController;
 |--------------------------------------------------------------------------
 */
 
+use App\Http\Controllers\InventoryController;
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // F-05: Suplayer
@@ -43,7 +45,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/satuan-obat', fn() => redirect()->route('units.index'))->name('satuan-obat');
     Route::get('units/{unit}/medicines', [UnitController::class, 'medicines'])->name('units.medicines');
 
-    // F-09: Data Obat
-    Route::get('/data-obat', fn() => redirect()->route('dashboard.admin'))->name('data-obat');
+    Route::get('/data-obat', [InventoryController::class, 'medicineIndex'])->name('data-obat');
+    Route::post('/data-obat', [InventoryController::class, 'storeMedicine'])->name('medicines.store');
+    Route::put('/data-obat/{id}', [InventoryController::class, 'updateMedicine'])->name('medicines.update');
+    Route::delete('/data-obat/{id}', [InventoryController::class, 'destroyMedicine'])->name('medicines.destroy');
+    Route::post('/data-obat/kategori', [InventoryController::class, 'storeCategory'])->name('categories.store');
 
 });

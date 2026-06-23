@@ -30,11 +30,12 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-**/vendor
+/vendor
+bootstrap/cache/*.php
 LICENSE
 README.md
 
-# Laravel caches
+# Laravel cache files
 bootstrap/cache/*.php
 storage/framework/cache/data/*
 storage/framework/sessions/*
