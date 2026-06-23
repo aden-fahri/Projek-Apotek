@@ -18,9 +18,9 @@ class MedicineGroupController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('code', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
             });
         }
 
@@ -94,18 +94,21 @@ class MedicineGroupController extends Controller
             ->withSum('stocks as current_stock', 'quantity')
             ->orderBy('name')
             ->get()
-            ->map(fn($m) => [
-                'name'           => $m->name,
-                'code'           => $m->code,
-                'selling_price'  => $m->selling_price,
-                'unit'           => optional($m->unit)->abbreviation ?? optional($m->unit)->name ?? '-',
-                'current_stock'  => (int)($m->current_stock ?? 0),
-                'is_active'      => $m->is_active,
-                'requires_prescription' => $m->requires_prescription,
-            ]);
+            ->map(function ($m) {
+                return [
+                    'name'                  => $m->name,
+                    'code'                  => $m->code,
+                    'selling_price'         => $m->selling_price,
+                    'unit'                  => optional($m->unit)->abbreviation ?? optional($m->unit)->name ?? '-',
+                    'current_stock'         => (int) ($m->current_stock ?? 0),
+                    'is_active'             => $m->is_active,
+                    'requires_prescription' => $m->requires_prescription,
+                ];
+            });
 
         return response()->json([
-            'label'    => $medicineGroup->name,
+            'label'     => $medicineGroup->name,
             'medicines' => $medicines,
         ]);
     }
+}
