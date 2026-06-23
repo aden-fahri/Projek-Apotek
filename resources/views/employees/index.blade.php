@@ -382,7 +382,7 @@
             color: var(--primary);
         }
 
-        .btn-action.toggle:hover {
+        .btn-action.delete:hover {
             color: var(--danger);
         }
 
@@ -527,6 +527,46 @@
             background-color: #F1F5F9;
             color: var(--text-primary);
         }
+
+        /* Password wrapper */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s ease;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .password-toggle .icon-eye {
+            display: none;
+        }
+
+        .password-toggle.active .icon-eye {
+            display: block;
+        }
+
+        .password-toggle.active .icon-eye-off {
+            display: none;
+        }
     </style>
 @endpush
 
@@ -540,7 +580,13 @@
             </div>
             <div class="toast-content">
                 <div class="toast-title">Kesalahan</div>
-                <div class="toast-message">Mohon periksa kembali input form Anda.</div>
+                <div class="toast-message">
+                    <ul style="margin: 4px 0 0 0; padding-left: 16px; font-size: 13px; text-align: left; list-style-type: disc;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
             <button type="button" class="toast-close" onclick="closeToast('errorToast')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -571,10 +617,10 @@
                 <h1 class="header-title">Manajemen Karyawan</h1>
                 <p class="header-subtitle">Kelola akun dan akses karyawan apotek</p>
             </div>
-            <button type="button" class="btn-add" onclick="openModal('addEmployeeModal')">
+            <a href="{{ route('employees.create') }}" class="btn-add">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Tambah Karyawan
-            </button>
+            </a>
         </div>
 
         <!-- Metric Cards -->
@@ -618,7 +664,7 @@
                     <span class="search-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </span>
-                    <input type="text" name="search" class="search-input" placeholder="Cari Nama / Username..." value="{{ request('search') }}" onchange="this.form.submit()">
+                    <input type="text" name="search" class="search-input" placeholder="Cari Nama / Email..." value="{{ request('search') }}" onchange="this.form.submit()">
                 </div>
                 <div class="dropdown-group">
                     <select name="role" class="select-filter" onchange="this.form.submit()">
@@ -641,7 +687,7 @@
                         <tr>
                             <th class="col-id">#</th>
                             <th>Nama Karyawan</th>
-                            <th>Username</th>
+                            <th>Email</th>
                             <th>Role</th>
                             <th>Telepon</th>
                             <th>Status</th>
@@ -654,7 +700,7 @@
                         <tr>
                             <td class="col-id">{{ $employees->firstItem() + $index }}</td>
                             <td class="col-name">{{ $employee->name }}</td>
-                            <td>{{ $employee->username }}</td>
+                            <td>{{ $employee->email }}</td>
                             <td>
                                 <span class="badge-role {{ $employee->role == 'admin' ? 'admin' : 'kasir' }}">
                                     {{ ucfirst($employee->role) }}
@@ -680,9 +726,13 @@
                                     <a href="{{ route('employees.edit', $employee->id) }}" class="btn-action edit" title="Edit Karyawan">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                     </a>
-                                    <a href="#" class="btn-action toggle" title="Ubah Status Keaktifan">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="3"></circle></svg>
-                                    </a>
+                                    <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus karyawan {{ addslashes($employee->name) }}?')" style="margin: 0; display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-action delete" title="Hapus Karyawan">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -767,22 +817,34 @@
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">No. Telepon</label>
+                            <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">No. Telepon <span style="color: #64748b; font-weight: normal; font-size: 13px;">(Opsional)</span></label>
                             <input type="text" name="telepon" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;" value="{{ old('telepon') }}">
                         </div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
                             <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Password <span style="color:red;">*</span></label>
-                            <input type="password" name="password" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                            <div class="password-wrapper">
+                                <input type="password" id="create_password" name="password" required style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <button type="button" class="password-toggle" onclick="togglePassword('create_password', this)" aria-label="Tampilkan password" style="right: 8px;">
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Konfirmasi Password <span style="color:red;">*</span></label>
-                            <input type="password" name="password_confirmation" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                            <div class="password-wrapper">
+                                <input type="password" id="create_password_confirmation" name="password_confirmation" required style="width: 100%; padding: 10px 40px 10px 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none;">
+                                <button type="button" class="password-toggle" onclick="togglePassword('create_password_confirmation', this)" aria-label="Tampilkan konfirmasi password" style="right: 8px;">
+                                    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div>
-                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Alamat</label>
+                        <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151;">Alamat <span style="color: #64748b; font-weight: normal; font-size: 13px;">(Opsional)</span></label>
                         <textarea name="alamat" rows="2" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; resize: vertical;">{{ old('alamat') }}</textarea>
                     </div>
                     
@@ -798,6 +860,19 @@
 
 @push('scripts')
     <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    btn.classList.add('active');
+                } else {
+                    input.type = 'password';
+                    btn.classList.remove('active');
+                }
+            }
+        }
+
         function closeToast(id) {
             const toast = document.getElementById(id);
             if (toast) {
@@ -816,26 +891,7 @@
                     }
                 }, 5000);
             });
-            
-            // Re-open modal if there are validation errors for creating
-            @if($errors->any() && !old('_method'))
-                openModal('addEmployeeModal');
-            @endif
         });
-
-        function openModal(id) {
-            const modal = document.getElementById(id);
-            if(modal) {
-                modal.style.display = 'flex';
-            }
-        }
-
-        function closeModal(id) {
-            const modal = document.getElementById(id);
-            if(modal) {
-                modal.style.display = 'none';
-            }
-        }
     </script>
 @endpush
 
