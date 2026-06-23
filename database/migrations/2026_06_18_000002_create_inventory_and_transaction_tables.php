@@ -108,71 +108,142 @@ return new class extends Migration
         });
 
         // Create database views
-        DB::statement("
-            CREATE OR REPLACE VIEW `v_medicine_stock_summary` AS
-            SELECT 
-                m.id AS medicine_id,
-                m.code AS medicine_code,
-                m.name AS medicine_name,
-                c.name AS category_name,
-                mg.name AS group_name,
-                u.name AS unit_name,
-                m.purchase_price,
-                m.selling_price,
-                m.min_stock,
-                COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) AS total_stock,
-                MIN(CASE WHEN ms.status = 'available' THEN ms.expiry_date END) AS nearest_expiry,
-                CASE 
-                    WHEN COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) <= 0 THEN 'Habis'
-                    WHEN COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) <= m.min_stock THEN 'Stok Rendah'
-                    ELSE 'Optimal'
-                END AS stock_status
-            FROM `medicines` m
-            LEFT JOIN `categories` c ON m.category_id = c.id
-            LEFT JOIN `medicine_groups` mg ON m.group_id = mg.id
-            LEFT JOIN `units` u ON m.unit_id = u.id
-            LEFT JOIN `medicine_stocks` ms ON m.id = ms.medicine_id
-            WHERE m.is_active = 1
-            GROUP BY m.id, m.code, m.name, c.name, mg.name, u.name, m.purchase_price, m.selling_price, m.min_stock;
-        ");
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement("DROP VIEW IF EXISTS `v_medicine_stock_summary`;");
+            DB::statement("
+                CREATE VIEW `v_medicine_stock_summary` AS
+                SELECT 
+                    m.id AS medicine_id,
+                    m.code AS medicine_code,
+                    m.name AS medicine_name,
+                    c.name AS category_name,
+                    mg.name AS group_name,
+                    u.name AS unit_name,
+                    m.purchase_price,
+                    m.selling_price,
+                    m.min_stock,
+                    COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) AS total_stock,
+                    MIN(CASE WHEN ms.status = 'available' THEN ms.expiry_date END) AS nearest_expiry,
+                    CASE 
+                        WHEN COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) <= 0 THEN 'Habis'
+                        WHEN COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) <= m.min_stock THEN 'Stok Rendah'
+                        ELSE 'Optimal'
+                    END AS stock_status
+                FROM `medicines` m
+                LEFT JOIN `categories` c ON m.category_id = c.id
+                LEFT JOIN `medicine_groups` mg ON m.group_id = mg.id
+                LEFT JOIN `units` u ON m.unit_id = u.id
+                LEFT JOIN `medicine_stocks` ms ON m.id = ms.medicine_id
+                WHERE m.is_active = 1
+                GROUP BY m.id, m.code, m.name, c.name, mg.name, u.name, m.purchase_price, m.selling_price, m.min_stock;
+            ");
 
-        DB::statement("
-            CREATE OR REPLACE VIEW `v_expiring_medicines` AS
-            SELECT 
-                ms.id AS stock_id,
-                m.code AS medicine_code,
-                m.name AS medicine_name,
-                ms.batch_number,
-                ms.quantity,
-                ms.expiry_date,
-                DATEDIFF(ms.expiry_date, CURDATE()) AS days_until_expiry,
-                CASE 
-                    WHEN ms.expiry_date <= CURDATE() THEN 'Kadaluwarsa'
-                    WHEN DATEDIFF(ms.expiry_date, CURDATE()) <= 30 THEN 'Segera Kadaluwarsa'
-                    WHEN DATEDIFF(ms.expiry_date, CURDATE()) <= 90 THEN 'Mendekati Kadaluwarsa'
-                    ELSE 'Aman'
-                END AS expiry_status
-            FROM `medicine_stocks` ms
-            JOIN `medicines` m ON ms.medicine_id = m.id
-            WHERE ms.status = 'available' 
-              AND ms.quantity > 0
-              AND DATEDIFF(ms.expiry_date, CURDATE()) <= 90
-            ORDER BY ms.expiry_date ASC;
-        ");
+            DB::statement("DROP VIEW IF EXISTS `v_expiring_medicines`;");
+            DB::statement("
+                CREATE VIEW `v_expiring_medicines` AS
+                SELECT 
+                    ms.id AS stock_id,
+                    m.code AS medicine_code,
+                    m.name AS medicine_name,
+                    ms.batch_number,
+                    ms.quantity,
+                    ms.expiry_date,
+                    CAST(julianday(ms.expiry_date) - julianday(date('now')) AS INTEGER) AS days_until_expiry,
+                    CASE 
+                        WHEN ms.expiry_date <= date('now') THEN 'Kadaluwarsa'
+                        WHEN (julianday(ms.expiry_date) - julianday(date('now'))) <= 30 THEN 'Segera Kadaluwarsa'
+                        WHEN (julianday(ms.expiry_date) - julianday(date('now'))) <= 90 THEN 'Mendekati Kadaluwarsa'
+                        ELSE 'Aman'
+                    END AS expiry_status
+                FROM `medicine_stocks` ms
+                JOIN `medicines` m ON ms.medicine_id = m.id
+                WHERE ms.status = 'available' 
+                  AND ms.quantity > 0
+                  AND (julianday(ms.expiry_date) - julianday(date('now'))) <= 90
+                ORDER BY ms.expiry_date ASC;
+            ");
 
-        DB::statement("
-            CREATE OR REPLACE VIEW `v_daily_sales_summary` AS
-            SELECT 
-                DATE(t.transaction_date) AS sale_date,
-                COUNT(t.id) AS total_transactions,
-                SUM(t.grand_total) AS total_revenue,
-                SUM(td.quantity) AS total_items_sold
-            FROM `transactions` t
-            LEFT JOIN `transaction_details` td ON t.id = td.transaction_id
-            WHERE t.status = 'completed'
-            GROUP BY DATE(t.transaction_date)
-            ORDER BY sale_date DESC;
-        ");
+            DB::statement("DROP VIEW IF EXISTS `v_daily_sales_summary`;");
+            DB::statement("
+                CREATE VIEW `v_daily_sales_summary` AS
+                SELECT 
+                    DATE(t.transaction_date) AS sale_date,
+                    COUNT(t.id) AS total_transactions,
+                    SUM(t.grand_total) AS total_revenue,
+                    SUM(td.quantity) AS total_items_sold
+                FROM `transactions` t
+                LEFT JOIN `transaction_details` td ON t.id = td.transaction_id
+                WHERE t.status = 'completed'
+                GROUP BY DATE(t.transaction_date)
+                ORDER BY sale_date DESC;
+            ");
+        } else {
+            DB::statement("
+                CREATE OR REPLACE VIEW `v_medicine_stock_summary` AS
+                SELECT 
+                    m.id AS medicine_id,
+                    m.code AS medicine_code,
+                    m.name AS medicine_name,
+                    c.name AS category_name,
+                    mg.name AS group_name,
+                    u.name AS unit_name,
+                    m.purchase_price,
+                    m.selling_price,
+                    m.min_stock,
+                    COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) AS total_stock,
+                    MIN(CASE WHEN ms.status = 'available' THEN ms.expiry_date END) AS nearest_expiry,
+                    CASE 
+                        WHEN COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) <= 0 THEN 'Habis'
+                        WHEN COALESCE(SUM(CASE WHEN ms.status = 'available' THEN ms.quantity ELSE 0 END), 0) <= m.min_stock THEN 'Stok Rendah'
+                        ELSE 'Optimal'
+                    END AS stock_status
+                FROM `medicines` m
+                LEFT JOIN `categories` c ON m.category_id = c.id
+                LEFT JOIN `medicine_groups` mg ON m.group_id = mg.id
+                LEFT JOIN `units` u ON m.unit_id = u.id
+                LEFT JOIN `medicine_stocks` ms ON m.id = ms.medicine_id
+                WHERE m.is_active = 1
+                GROUP BY m.id, m.code, m.name, c.name, mg.name, u.name, m.purchase_price, m.selling_price, m.min_stock;
+            ");
+
+            DB::statement("
+                CREATE OR REPLACE VIEW `v_expiring_medicines` AS
+                SELECT 
+                    ms.id AS stock_id,
+                    m.code AS medicine_code,
+                    m.name AS medicine_name,
+                    ms.batch_number,
+                    ms.quantity,
+                    ms.expiry_date,
+                    DATEDIFF(ms.expiry_date, CURDATE()) AS days_until_expiry,
+                    CASE 
+                        WHEN ms.expiry_date <= CURDATE() THEN 'Kadaluwarsa'
+                        WHEN DATEDIFF(ms.expiry_date, CURDATE()) <= 30 THEN 'Segera Kadaluwarsa'
+                        WHEN DATEDIFF(ms.expiry_date, CURDATE()) <= 90 THEN 'Mendekati Kadaluwarsa'
+                        ELSE 'Aman'
+                    END AS expiry_status
+                FROM `medicine_stocks` ms
+                JOIN `medicines` m ON ms.medicine_id = m.id
+                WHERE ms.status = 'available' 
+                  AND ms.quantity > 0
+                  AND DATEDIFF(ms.expiry_date, CURDATE()) <= 90
+                ORDER BY ms.expiry_date ASC;
+            ");
+
+            DB::statement("
+                CREATE OR REPLACE VIEW `v_daily_sales_summary` AS
+                SELECT 
+                    DATE(t.transaction_date) AS sale_date,
+                    COUNT(t.id) AS total_transactions,
+                    SUM(t.grand_total) AS total_revenue,
+                    SUM(td.quantity) AS total_items_sold
+                FROM `transactions` t
+                LEFT JOIN `transaction_details` td ON t.id = td.transaction_id
+                WHERE t.status = 'completed'
+                GROUP BY DATE(t.transaction_date)
+                ORDER BY sale_date DESC;
+            ");
+        }
     }
 
     /**
