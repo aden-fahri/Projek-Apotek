@@ -5,85 +5,53 @@ namespace App\Http\Controllers;
 use App\Models\Medicine;
 use App\Models\MedicineStock;
 use App\Models\Supplier;
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    // =========================================================================
+    // PUBLIC ROUTES
+    // =========================================================================
+
     /**
-     * Default dashboard — redirects to Admin or Kasir view based on role
+     * Redirect ke dashboard sesuai role pengguna yang sedang login.
      */
     public function index()
     {
-        if (Auth::check()) {
-            if (Auth::user()->role === 'admin') {
-                return redirect()->route('dashboard.admin');
-            } elseif (Auth::user()->role === 'kasir') {
-                return redirect()->route('dashboard.kasir');
-            }
-        }
-        return redirect()->route('login');
+        $role = Auth::user()?->role;
+
+        return match ($role) {
+            'admin' => redirect()->route('dashboard.admin'),
+            'kasir' => redirect()->route('dashboard.kasir'),
+            default => redirect()->route('login'),
+        };
     }
 
     /**
-     * Dashboard view for Kasir role
+     * Dashboard untuk Kasir.
      */
     public function kasir()
     {
         $userId = Auth::id();
 
-        // 1. Total penjualan hari ini oleh kasir ini
-        $salesToday = DB::table('transactions')
-            ->where('user_id', $userId)
-            ->where('status', 'completed')
-            ->whereDate('transaction_date', today())
-            ->sum('grand_total');
+        // --- Statistik Penjualan Hari Ini ---
+        $salesToday     = $this->sumTransaksi(today(), $userId);
+        $salesYesterday = $this->sumTransaksi(today()->subDay(), $userId);
+        [$trendPenjualan, $trendPenjualanUp] = $this->hitungTrend($salesToday, $salesYesterday, 'vs kemarin');
 
-        $salesYesterday = DB::table('transactions')
-            ->where('user_id', $userId)
-            ->where('status', 'completed')
-            ->whereDate('transaction_date', today()->subDay())
-            ->sum('grand_total');
+        // --- Statistik Transaksi Hari Ini ---
+        $trxToday     = $this->countTransaksi(today(), $userId);
+        $trxYesterday = $this->countTransaksi(today()->subDay(), $userId);
+        [$trendTransaksi, $trendTransaksiUp] = $this->hitungTrend($trxToday, $trxYesterday, 'vs kemarin');
 
-        if ($salesYesterday > 0) {
-            $diffSales = (($salesToday - $salesYesterday) / $salesYesterday) * 100;
-            $trendPenjualan = ($diffSales >= 0 ? '+' : '') . round($diffSales, 1) . '% vs kemarin';
-            $trendPenjualanUp = $diffSales >= 0;
-        } else {
-            $trendPenjualan = '+0% vs kemarin';
-            $trendPenjualanUp = true;
-        }
-
-        // 2. Jumlah transaksi hari ini oleh kasir ini
-        $trxToday = DB::table('transactions')
-            ->where('user_id', $userId)
-            ->where('status', 'completed')
-            ->whereDate('transaction_date', today())
-            ->count();
-
-        $trxYesterday = DB::table('transactions')
-            ->where('user_id', $userId)
-            ->where('status', 'completed')
-            ->whereDate('transaction_date', today()->subDay())
-            ->count();
-
-        if ($trxYesterday > 0) {
-            $diffTrx = (($trxToday - $trxYesterday) / $trxYesterday) * 100;
-            $trendTransaksi = ($diffTrx >= 0 ? '+' : '') . round($diffTrx, 1) . '% vs kemarin';
-            $trendTransaksiUp = $diffTrx >= 0;
-        } else {
-            $trendTransaksi = '+0% vs kemarin';
-            $trendTransaksiUp = true;
-        }
-
-        // 3. Rata-rata nilai transaksi oleh kasir ini
+        // --- Metrik Tambahan ---
         $avgTrx = DB::table('transactions')
             ->where('user_id', $userId)
             ->where('status', 'completed')
             ->avg('grand_total') ?? 0;
 
-        // 4. Jumlah obat terjual hari ini
         $itemsSoldToday = DB::table('transaction_details')
             ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->where('transactions.user_id', $userId)
@@ -91,7 +59,6 @@ class DashboardController extends Controller
             ->whereDate('transactions.transaction_date', today())
             ->sum('transaction_details.quantity');
 
-        // 5. Resep dilayani hari ini
         $resepServed = DB::table('transaction_details')
             ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->join('medicines', 'transaction_details.medicine_id', '=', 'medicines.id')
@@ -101,7 +68,6 @@ class DashboardController extends Controller
             ->where('medicines.requires_prescription', true)
             ->count();
 
-        // 6. Pelanggan unik yang dilayani hari ini
         $customersServed = DB::table('transactions')
             ->where('user_id', $userId)
             ->where('status', 'completed')
@@ -111,296 +77,123 @@ class DashboardController extends Controller
             ->distinct()
             ->count('customer_name');
 
-        if ($customersServed == 0 && $trxToday > 0) {
-            $customersServed = $trxToday; // Fallback jika nama pelanggan kosong (umum)
+        // Fallback: jika nama pelanggan kosong, gunakan jumlah transaksi
+        if ($customersServed === 0 && $trxToday > 0) {
+            $customersServed = $trxToday;
         }
 
-        // 7. Data Expired & Stok Rendah
+        // --- Stok & Kadaluwarsa ---
         $mendekatiKadaluwarsa = DB::table('v_expiring_medicines')->count();
-        $stokRendah = DB::table('v_medicine_stock_summary')->where('stock_status', 'Stok Rendah')->count();
-        $totalStokQty = DB::table('medicine_stocks')->where('status', 'available')->sum('quantity') ?? 0;
+        $stokRendah           = DB::table('v_medicine_stock_summary')->where('stock_status', 'Stok Rendah')->count();
+        $totalStokQty         = DB::table('medicine_stocks')->where('status', 'available')->sum('quantity') ?? 0;
 
-        // 8. Top 5 Obat Terlaris oleh kasir ini
-        $topMedicines = DB::table('transaction_details')
-            ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
-            ->join('medicines', 'transaction_details.medicine_id', '=', 'medicines.id')
-            ->join('categories', 'medicines.category_id', '=', 'categories.id')
-            ->where('transactions.status', 'completed')
-            ->where('transactions.user_id', $userId)
-            ->select('medicines.name', 'categories.name as kategori', DB::raw('SUM(transaction_details.quantity) as total_qty'))
-            ->groupBy('medicines.id', 'medicines.name', 'categories.name')
-            ->orderBy('total_qty', 'desc')
-            ->limit(5)
-            ->get();
-
-        $topObat = [];
-        foreach ($topMedicines as $m) {
-            $topObat[] = [
-                'nama' => $m->name,
-                'kategori' => $m->kategori,
-                'terjual' => (int)$m->total_qty
-            ];
-        }
-        if (empty($topObat)) {
-            $meds = Medicine::with('category')->limit(5)->get();
-            foreach ($meds as $m) {
-                $topObat[] = [
-                    'nama' => $m->name,
-                    'kategori' => $m->category->name ?? '-',
-                    'terjual' => 0
-                ];
-            }
-        }
-
-        // 9. Aktivitas terbaru kasir ini
-        $logs = DB::table('activity_logs')
-            ->where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->limit(4)
-            ->get();
-
-        $aktivitas = [];
-        foreach ($logs as $log) {
-            $aktivitas[] = [
-                'ikon' => $log->action === 'create' ? 'check' : ($log->action === 'delete' ? 'warning' : 'box'),
-                'warna' => $log->action === 'delete' ? 'orange' : 'teal',
-                'text' => $log->activity,
-                'waktu' => \Carbon\Carbon::parse($log->created_at)->diffForHumans()
-            ];
-        }
-        if (empty($aktivitas)) {
-            $aktivitas[] = [
-                'ikon' => 'check',
-                'warna' => 'teal',
-                'text' => 'Sesi kasir aktif.',
-                'waktu' => 'Baru saja'
-            ];
-        }
-
-        // 10. Obat mendekati kadaluwarsa list
-        $obatKadaluwarsa = [];
-        $expiring = DB::table('v_expiring_medicines')->limit(3)->get();
-        foreach ($expiring as $e) {
-            $obatKadaluwarsa[] = [
-                'nama' => $e->medicine_name,
-                'batch' => 'Batch: ' . $e->batch_number,
-                'hari' => $e->days_until_expiry
-            ];
-        }
-
-        // 11. Obat stok rendah list
-        $obatStokRendah = [];
-        $lowStocks = DB::table('v_medicine_stock_summary')
-            ->where('stock_status', 'Stok Rendah')
-            ->limit(3)
-            ->get();
-        foreach ($lowStocks as $ls) {
-            $percent = $ls->min_stock > 0 ? round(($ls->total_stock / $ls->min_stock) * 100) : 0;
-            $obatStokRendah[] = [
-                'nama' => $ls->medicine_name,
-                'kategori' => $ls->category_name ?? 'Lainnya',
-                'sisa' => $ls->total_stock,
-                'persen' => $percent
-            ];
-        }
-
-        // 12. 10 transaksi terakhir kasir ini
-        $latestTransactions = DB::table('transactions')
+        // --- Transaksi Terakhir ---
+        $transaksi = DB::table('transactions')
             ->where('user_id', $userId)
             ->orderBy('transaction_date', 'desc')
             ->limit(10)
-            ->get();
-
-        $transaksi = [];
-        foreach ($latestTransactions as $t) {
-            // Count items
-            $itemCount = DB::table('transaction_details')->where('transaction_id', $t->id)->sum('quantity');
-            $transaksi[] = [
-                'id' => $t->invoice_number,
-                'waktu' => \Carbon\Carbon::parse($t->transaction_date)->format('H:i A'),
+            ->get()
+            ->map(fn ($t) => [
+                'id'        => $t->invoice_number,
+                'waktu'     => Carbon::parse($t->transaction_date)->format('H:i A'),
                 'pelanggan' => $t->customer_name ?: 'Umum',
-                'item' => (int)$itemCount,
-                'total' => 'Rp ' . number_format($t->grand_total, 0, ',', '.'),
-                'status' => $t->status === 'completed' ? 'Selesai' : 'Dibatalkan'
-            ];
-        }
-
-        // Chart Penjualan 7 Hari Terakhir (Kasir ini)
-        $penjualanChart = [];
-        $dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = today()->subDays($i);
-            $val = DB::table('transactions')
-                ->where('user_id', $userId)
-                ->whereDate('transaction_date', $date)
-                ->where('status', 'completed')
-                ->sum('grand_total');
-            $penjualanChart[] = [
-                'hari' => $dayNames[$date->dayOfWeek],
-                'nilai' => (float)$val
-            ];
-        }
-
-        // Donut Chart Distribusi Obat per Kategori
-        $categoriesCount = DB::table('v_medicine_stock_summary')
-            ->select('category_name', DB::raw('count(*) as count'))
-            ->groupBy('category_name')
-            ->orderBy('count', 'desc')
-            ->get();
-        $totalMedCount = $categoriesCount->sum('count');
-        $distribusiObat = [];
-        $colors = ['#009688', '#26a69a', '#80cbc4', '#b2dfdb', '#e0f2f1'];
-        $idx = 0;
-        foreach ($categoriesCount as $cat) {
-            if ($totalMedCount > 0) {
-                $distribusiObat[] = [
-                    'label' => $cat->category_name ?: 'Lainnya',
-                    'persen' => round(($cat->count / $totalMedCount) * 100),
-                    'warna' => $colors[$idx % count($colors)]
-                ];
-                $idx++;
-            }
-        }
-        if (empty($distribusiObat)) {
-            $distribusiObat[] = ['label' => 'Belum ada', 'persen' => 100, 'warna' => '#009688'];
-        }
+                'item'      => number_format((int) DB::table('transaction_details')->where('transaction_id', $t->id)->sum('quantity'), 0, ',', '.'),
+                'total'     => $this->rp($t->grand_total),
+                'status'    => $t->status === 'completed' ? 'Selesai' : 'Dibatalkan',
+            ])
+            ->toArray();
 
         $data = [
+            // Identitas
             'role'                 => 'kasir',
             'userName'             => Auth::user()->name,
-            'totalPenjualan'       => 'Rp ' . number_format($salesToday / 1000, 0, ',', '.') . 'k',
+
+            // Statistik utama
+            'totalPenjualan'       => $this->rp($salesToday),
             'trendPenjualan'       => $trendPenjualan,
             'trendPenjualanUp'     => $trendPenjualanUp,
-            'jumlahTransaksi'      => (string)$trxToday,
+            'jumlahTransaksi'      => number_format($trxToday, 0, ',', '.'),
             'trendTransaksi'       => $trendTransaksi,
             'trendTransaksiUp'     => $trendTransaksiUp,
-            'mendekatiKadaluwarsa' => $mendekatiKadaluwarsa,
-            'itemPerluDiperiksa'   => $mendekatiKadaluwarsa,
-            'stokRendah'           => $stokRendah,
-            'segeraRestock'        => $stokRendah,
-            'rataRataNilai'        => 'Rp ' . number_format($avgTrx, 0, ',', '.'),
-            'obatTerjual'          => $itemsSoldToday . ' Item',
-            'resepDilayani'        => $resepServed,
-            'pelangganAktif'       => $customersServed,
-            'stokAman'             => $totalStokQty,
-            'perluRestock'         => $stokRendah,
-            'dalamPemesanan'       => DB::table('purchase_orders')->where('status', 'pending')->count(),
-            'topObat'              => $topObat,
-            'aktivitas'            => $aktivitas,
-            'obatKadaluwarsa'      => $obatKadaluwarsa,
-            'obatStokRendah'       => $obatStokRendah,
+            'rataRataNilai'        => $this->rp($avgTrx),
+            'obatTerjual'          => number_format($itemsSoldToday, 0, ',', '.') . ' Item',
+            'resepDilayani'        => number_format($resepServed, 0, ',', '.'),
+            'pelangganAktif'       => number_format($customersServed, 0, ',', '.'),
+
+            // Stok & kadaluwarsa
+            'mendekatiKadaluwarsa' => number_format($mendekatiKadaluwarsa, 0, ',', '.'),
+            'itemPerluDiperiksa'   => number_format($mendekatiKadaluwarsa, 0, ',', '.'),
+            'stokRendah'           => number_format($stokRendah, 0, ',', '.'),
+            'segeraRestock'        => number_format($stokRendah, 0, ',', '.'),
+            'stokAman'             => number_format($totalStokQty, 0, ',', '.'),
+            'perluRestock'         => number_format($stokRendah, 0, ',', '.'),
+            'dalamPemesanan'       => number_format(DB::table('purchase_orders')->where('status', 'pending')->count(), 0, ',', '.'),
+
+            // Daftar
+            'topObat'              => $this->getTopObat($userId),
+            'aktivitas'            => $this->getAktivitas($userId, limit: 4, defaultText: 'Sesi kasir aktif.'),
+            'obatKadaluwarsa'      => $this->getObatKadaluwarsa(),
+            'obatStokRendah'       => $this->getObatStokRendah(),
             'transaksi'            => $transaksi,
-            'penjualanChart'       => $penjualanChart,
-            'distribusiObat'       => $distribusiObat,
+
+            // Chart
+            'penjualanChart'       => $this->getPenjualanChart($userId),
+            'distribusiObat'       => $this->getDistribusiObat(),
         ];
 
         return view('pages.dashboard-kasir', compact('data'));
     }
 
     /**
-     * Dashboard view for Admin role
+     * Dashboard untuk Admin.
      */
     public function admin()
     {
-        // 1. Total jenis obat aktif
-        $totalObat = Medicine::where('is_active', true)->count();
-        $newObatThisMonth = Medicine::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
+        // --- Obat & Stok ---
+        $totalObat        = Medicine::where('is_active', true)->count();
+        $newObatThisMonth = Medicine::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+        $totalStok        = MedicineStock::where('status', 'available')->sum('quantity') ?? 0;
 
-        // 2. Total stok
-        $totalStok = MedicineStock::where('status', 'available')->sum('quantity') ?? 0;
+        // --- Penjualan Hari Ini ---
+        $salesToday     = $this->sumTransaksi(today());
+        $salesYesterday = $this->sumTransaksi(today()->subDay());
+        [$trendPenjualan, $trendPenjualanUp] = $this->hitungTrend($salesToday, $salesYesterday, 'dari kemarin');
 
-        // 3. Penjualan Hari Ini (Admin melihat seluruh penjualan)
-        $salesToday = DB::table('transactions')
-            ->where('status', 'completed')
-            ->whereDate('transaction_date', today())
-            ->sum('grand_total');
-
-        $salesYesterday = DB::table('transactions')
-            ->where('status', 'completed')
-            ->whereDate('transaction_date', today()->subDay())
-            ->sum('grand_total');
-
-        if ($salesYesterday > 0) {
-            $diffSales = (($salesToday - $salesYesterday) / $salesYesterday) * 100;
-            $trendPenjualan = ($diffSales >= 0 ? '+' : '') . round($diffSales, 1) . '% dari kemarin';
-            $trendPenjualanUp = $diffSales >= 0;
-        } else {
-            $trendPenjualan = '0% dari kemarin';
-            $trendPenjualanUp = true;
-        }
-
-        // 4. Total Transaksi (Bulan Ini)
+        // --- Transaksi Bulan Ini ---
         $totalTrxMonth = DB::table('transactions')
             ->where('status', 'completed')
             ->whereMonth('transaction_date', now()->month)
             ->whereYear('transaction_date', now()->year)
             ->count();
 
-        // Rata-rata nilai transaksi
-        $avgTrx = DB::table('transactions')
-            ->where('status', 'completed')
-            ->avg('grand_total') ?? 0;
+        $avgTrx = DB::table('transactions')->where('status', 'completed')->avg('grand_total') ?? 0;
 
+        // --- Master Data ---
         $supplierCount = Supplier::where('is_active', true)->count();
         $categoryCount = DB::table('categories')->count();
 
-        // 5. Chart Penjualan 7 Hari Terakhir
-        $penjualanChart = [];
-        $dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = today()->subDays($i);
-            $val = DB::table('transactions')
-                ->whereDate('transaction_date', $date)
-                ->where('status', 'completed')
-                ->sum('grand_total');
-            $penjualanChart[] = [
-                'hari' => $dayNames[$date->dayOfWeek],
-                'nilai' => (float)$val
-            ];
-        }
-
-        // 6. Donut Chart Distribusi Obat per Kategori
-        $categoriesCount = DB::table('v_medicine_stock_summary')
-            ->select('category_name', DB::raw('count(*) as count'))
-            ->groupBy('category_name')
-            ->orderBy('count', 'desc')
-            ->get();
-        $totalMedCount = $categoriesCount->sum('count');
-        $distribusiObat = [];
-        $colors = ['#009688', '#26a69a', '#80cbc4', '#b2dfdb', '#e0f2f1'];
-        $idx = 0;
-        foreach ($categoriesCount as $cat) {
-            if ($totalMedCount > 0) {
-                $distribusiObat[] = [
-                    'label' => $cat->category_name ?: 'Lainnya',
-                    'persen' => round(($cat->count / $totalMedCount) * 100),
-                    'warna' => $colors[$idx % count($colors)]
-                ];
-                $idx++;
-            }
-        }
-        if (empty($distribusiObat)) {
-            $distribusiObat[] = ['label' => 'Belum ada', 'persen' => 100, 'warna' => '#009688'];
-        }
-
-        // 7. Kondisi inventaris
-        $lowStockCount = DB::table('v_medicine_stock_summary')->where('stock_status', 'Stok Rendah')->count();
-        $outStockCount = DB::table('v_medicine_stock_summary')->where('stock_status', 'Habis')->count();
+        // --- Kondisi Inventaris ---
+        $lowStockCount  = DB::table('v_medicine_stock_summary')->where('stock_status', 'Stok Rendah')->count();
+        $outStockCount  = DB::table('v_medicine_stock_summary')->where('stock_status', 'Habis')->count();
         $safeStockCount = $totalObat - $lowStockCount - $outStockCount;
 
-        $inventarisAman = $totalObat > 0 ? round(($safeStockCount / $totalObat) * 100) : 100;
-        $inventarisMenengah = $totalObat > 0 ? round(($lowStockCount / $totalObat) * 100) : 0;
-        $inventarisRendah = $totalObat > 0 ? round(($outStockCount / $totalObat) * 100) : 0;
+        $inventarisAman     = $totalObat > 0 ? round(($safeStockCount / $totalObat) * 100) : 100;
+        $inventarisMenengah = $totalObat > 0 ? round(($lowStockCount  / $totalObat) * 100) : 0;
+        $inventarisRendah   = $totalObat > 0 ? round(($outStockCount  / $totalObat) * 100) : 0;
 
-        // 8. Pendapatan Minggu & Bulan
-        $startOfWeek = now()->startOfWeek();
-        $endOfWeek = now()->endOfWeek();
-        $revenueWeek = DB::table('transactions')->whereBetween('transaction_date', [$startOfWeek, $endOfWeek])->where('status', 'completed')->sum('grand_total');
-        $revenueMonth = DB::table('transactions')->whereMonth('transaction_date', now()->month)->whereYear('transaction_date', now()->year)->where('status', 'completed')->sum('grand_total');
+        // --- Pendapatan ---
+        $revenueWeek = DB::table('transactions')
+            ->whereBetween('transaction_date', [now()->startOfWeek(), now()->endOfWeek()])
+            ->where('status', 'completed')
+            ->sum('grand_total');
 
-        // Estimasi laba kotor bulan ini
+        $revenueMonth = DB::table('transactions')
+            ->whereMonth('transaction_date', now()->month)
+            ->whereYear('transaction_date', now()->year)
+            ->where('status', 'completed')
+            ->sum('grand_total');
+
+        // --- Estimasi Laba Kotor Bulan Ini ---
         $totalSalesVal = DB::table('transaction_details')
             ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->where('transactions.status', 'completed')
@@ -419,123 +212,9 @@ class DashboardController extends Controller
 
         $estLaba = $totalSalesVal - $totalCostVal;
 
-        // 9. Top 5 Obat Terlaris (All time)
-        $topMedicines = DB::table('transaction_details')
-            ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
-            ->join('medicines', 'transaction_details.medicine_id', '=', 'medicines.id')
-            ->join('categories', 'medicines.category_id', '=', 'categories.id')
-            ->where('transactions.status', 'completed')
-            ->select('medicines.name', 'categories.name as kategori', DB::raw('SUM(transaction_details.quantity) as total_qty'))
-            ->groupBy('medicines.id', 'medicines.name', 'categories.name')
-            ->orderBy('total_qty', 'desc')
-            ->limit(5)
-            ->get();
-
-        $topObat = [];
-        $no = 1;
-        foreach ($topMedicines as $m) {
-            $topObat[] = [
-                'no' => $no++,
-                'nama' => $m->name,
-                'kategori' => $m->kategori,
-                'terjual' => (int)$m->total_qty
-            ];
-        }
-        if (empty($topObat)) {
-            $meds = Medicine::with('category')->limit(5)->get();
-            foreach ($meds as $m) {
-                $topObat[] = [
-                    'no' => $no++,
-                    'nama' => $m->name,
-                    'kategori' => $m->category->name ?? '-',
-                    'terjual' => 0
-                ];
-            }
-        }
-
-        // 10. Aktivitas terbaru
-        $logs = DB::table('activity_logs')
-            ->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get();
-
-        $aktivitas = [];
-        foreach ($logs as $log) {
-            $aktivitas[] = [
-                'warna' => $log->action === 'delete' ? 'orange' : 'teal',
-                'text' => $log->activity,
-                'waktu' => \Carbon\Carbon::parse($log->created_at)->diffForHumans()
-            ];
-        }
-        if (empty($aktivitas)) {
-            $aktivitas[] = [
-                'warna' => 'teal',
-                'text' => 'Sistem aktif. Belum ada aktivitas yang tercatat.',
-                'waktu' => 'Baru saja'
-            ];
-        }
-
-        // 11. 10 Transaksi Terakhir
-        $latestTransactions = DB::table('transactions')
-            ->join('users', 'transactions.user_id', '=', 'users.id')
-            ->orderBy('transactions.transaction_date', 'desc')
-            ->select('transactions.*', 'users.name as kasir_name')
-            ->limit(10)
-            ->get();
-
-        $transaksi = [];
-        foreach ($latestTransactions as $t) {
-            $transaksi[] = [
-                'id' => '#' . $t->invoice_number,
-                'waktu' => \Carbon\Carbon::parse($t->transaction_date)->format('H:i') . ' WIB',
-                'kasir' => $t->kasir_name ?? 'Kasir',
-                'total' => 'Rp ' . number_format($t->grand_total, 0, ',', '.'),
-                'metode' => ucfirst($t->payment_method),
-                'status' => $t->status === 'completed' ? 'Selesai' : 'Dibatalkan'
-            ];
-        }
-
-        // 12. Footer stats
-        $footerPenjualan = DB::table('transactions')
-            ->where('status', 'completed')
-            ->whereMonth('transaction_date', now()->month)
-            ->whereYear('transaction_date', now()->year)
-            ->sum('grand_total');
-
-        $prevMonthPenjualan = DB::table('transactions')
-            ->where('status', 'completed')
-            ->whereMonth('transaction_date', now()->subMonth()->month)
-            ->whereYear('transaction_date', now()->subMonth()->year)
-            ->sum('grand_total');
-        if ($prevMonthPenjualan > 0) {
-            $diffPenjualan = (($footerPenjualan - $prevMonthPenjualan) / $prevMonthPenjualan) * 100;
-            $footerPenjualanTrend = round(abs($diffPenjualan), 1) . '%';
-            $footerPenjualanTrendUp = $diffPenjualan >= 0;
-        } else {
-            $footerPenjualanTrend = '0.0%';
-            $footerPenjualanTrendUp = true;
-        }
-
-        $footerPembelian = DB::table('purchase_orders')
-            ->where('status', 'completed')
-            ->whereMonth('order_date', now()->month)
-            ->whereYear('order_date', now()->year)
-            ->sum('total_amount');
-
-        $prevMonthPembelian = DB::table('purchase_orders')
-            ->where('status', 'completed')
-            ->whereMonth('order_date', now()->subMonth()->month)
-            ->whereYear('order_date', now()->subMonth()->year)
-            ->sum('total_amount');
-        if ($prevMonthPembelian > 0) {
-            $diffPembelian = (($footerPembelian - $prevMonthPembelian) / $prevMonthPembelian) * 100;
-            $footerPembelianTrend = round(abs($diffPembelian), 1) . '%';
-            $footerPembelianTrendUp = $diffPembelian >= 0;
-        } else {
-            $footerPembelianTrend = '0.0%';
-            $footerPembelianTrendUp = true;
-        }
-
+        // --- Footer Stats ---
+        $footerPenjualan  = $this->footerStat('transactions', 'grand_total', 'transaction_date');
+        $footerPembelian  = $this->footerStat('purchase_orders', 'total_amount', 'order_date');
         $footerPertumbuhan = DB::table('transactions')
             ->where('status', 'completed')
             ->whereMonth('transaction_date', now()->month)
@@ -543,59 +222,333 @@ class DashboardController extends Controller
             ->distinct()
             ->count('customer_name');
 
-        $prevMonthPertumbuhan = DB::table('transactions')
-            ->where('status', 'completed')
-            ->whereMonth('transaction_date', now()->subMonth()->month)
-            ->whereYear('transaction_date', now()->subMonth()->year)
-            ->distinct()
-            ->count('customer_name');
-        if ($prevMonthPertumbuhan > 0) {
-            $diffPertumbuhan = (($footerPertumbuhan - $prevMonthPertumbuhan) / $prevMonthPertumbuhan) * 100;
-            $footerPertumbuhanTrend = round(abs($diffPertumbuhan), 1) . '%';
-            $footerPertumbuhanTrendUp = $diffPertumbuhan >= 0;
-        } else {
-            $footerPertumbuhanTrend = '0.0%';
-            $footerPertumbuhanTrendUp = true;
-        }
+        [$footerPenjualanTrend,  $footerPenjualanTrendUp]  = $this->hitungFooterTrend('transactions',    'grand_total',  'transaction_date', $footerPenjualan);
+        [$footerPembelianTrend,  $footerPembelianTrendUp]  = $this->hitungFooterTrend('purchase_orders', 'total_amount', 'order_date',       $footerPembelian);
+        [$footerPertumbuhanTrend, $footerPertumbuhanTrendUp] = $this->hitungFooterTrendCount('transactions', 'transaction_date', $footerPertumbuhan);
+
+        // --- Transaksi Terakhir ---
+        $transaksi = DB::table('transactions')
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->select('transactions.*', 'users.name as kasir_name')
+            ->orderBy('transactions.transaction_date', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(fn ($t) => [
+                'id'     => '#' . $t->invoice_number,
+                'waktu'  => Carbon::parse($t->transaction_date)->format('H:i') . ' WIB',
+                'kasir'  => $t->kasir_name ?? 'Kasir',
+                'total'  => $this->rp($t->grand_total),
+                'metode' => ucfirst($t->payment_method),
+                'status' => $t->status === 'completed' ? 'Selesai' : 'Dibatalkan',
+            ])
+            ->toArray();
 
         $data = [
-            'role'              => 'admin',
-            'userName'          => Auth::user()->name,
-            'totalObat'         => number_format($totalObat, 0, ',', '.'),
-            'trendObat'         => "+{$newObatThisMonth} Item Baru Bulan Ini",
-            'totalStok'         => number_format($totalStok, 0, ',', '.'),
-            'stokNote'          => $lowStockCount > 0 ? "Perlu restock ({$lowStockCount} item)" : "Tingkat stok optimal",
-            'penjualanHariIni'  => 'Rp ' . number_format($salesToday, 0, ',', '.'),
-            'trendPenjualan'    => $trendPenjualan,
-            'trendPenjualanUp'  => $trendPenjualanUp,
-            'totalTransaksi'    => $totalTrxMonth,
-            'rataRataNilai'     => 'Rp ' . number_format($avgTrx, 0, ',', '.'),
-            'supplierAktif'     => $supplierCount,
-            'kategoriObat'      => $categoryCount,
-            'penjualanChart'    => $penjualanChart,
-            'distribusiObat'    => $distribusiObat,
+            // Identitas
+            'role'     => 'admin',
+            'userName' => Auth::user()->name,
+
+            // Kartu statistik besar
+            'totalObat'        => number_format($totalObat, 0, ',', '.'),
+            'trendObat'        => "+{$newObatThisMonth} Item Baru Bulan Ini",
+            'totalStok'        => number_format($totalStok, 0, ',', '.'),
+            'stokNote'         => $lowStockCount > 0 ? "Perlu restock (" . number_format($lowStockCount, 0, ',', '.') . " item)" : 'Tingkat stok optimal',
+            'penjualanHariIni' => $this->rp($salesToday),
+            'trendPenjualan'   => $trendPenjualan,
+            'trendPenjualanUp' => $trendPenjualanUp,
+
+            // Mini stat cards
+            'totalTransaksi' => number_format($totalTrxMonth, 0, ',', '.'),
+            'rataRataNilai'  => $this->rp($avgTrx),
+            'supplierAktif'  => number_format($supplierCount, 0, ',', '.'),
+            'kategoriObat'   => number_format($categoryCount, 0, ',', '.'),
+
+            // Kondisi inventaris
             'inventarisAman'     => $inventarisAman,
             'inventarisMenengah' => $inventarisMenengah,
             'inventarisRendah'   => $inventarisRendah,
-            'pendapatanMinggu' => $revenueWeek >= 1000000 ? 'Rp ' . round($revenueWeek / 1000000, 1) . 'jt' : 'Rp ' . number_format($revenueWeek / 1000, 0) . 'rb',
-            'pendapatanBulan'  => $revenueMonth >= 1000000 ? 'Rp ' . round($revenueMonth / 1000000, 1) . 'jt' : 'Rp ' . number_format($revenueMonth / 1000, 0) . 'rb',
-            'estimasiLaba'     => $estLaba >= 1000000 ? 'Rp ' . round($estLaba / 1000000, 1) . 'jt' : 'Rp ' . number_format($estLaba / 1000, 0) . 'rb',
-            'topObat'          => $topObat,
-            'aktivitas'        => $aktivitas,
-            'transaksi'        => $transaksi,
-            'footerPenjualan'  => $footerPenjualan >= 1000000 ? 'Rp ' . round($footerPenjualan / 1000000, 1) . 'jt' : 'Rp ' . number_format($footerPenjualan / 1000, 0) . 'rb',
-            'footerPenjualanTrend' => $footerPenjualanTrend,
-            'footerPenjualanTrendUp' => $footerPenjualanTrendUp,
-            'footerPembelian'  => $footerPembelian >= 1000000 ? 'Rp ' . round($footerPembelian / 1000000, 1) . 'jt' : 'Rp ' . number_format($footerPembelian / 1000, 0) . 'rb',
-            'footerPembelianTrend' => $footerPembelianTrend,
-            'footerPembelianTrendUp' => $footerPembelianTrendUp,
-            'footerPertumbuhan' => "{$footerPertumbuhan} Transaksi",
-            'footerPertumbuhanTrend' => $footerPertumbuhanTrend,
+
+            // Pendapatan
+            'pendapatanMinggu' => $this->rp($revenueWeek),
+            'pendapatanBulan'  => $this->rp($revenueMonth),
+            'estimasiLaba'     => $this->rp($estLaba),
+
+            // Daftar
+            'topObat'   => $this->getTopObat(withNo: true),
+            'aktivitas' => $this->getAktivitas(defaultText: 'Sistem aktif. Belum ada aktivitas yang tercatat.'),
+            'transaksi' => $transaksi,
+
+            // Chart
+            'penjualanChart' => $this->getPenjualanChart(),
+            'distribusiObat' => $this->getDistribusiObat(),
+
+            // Footer
+            'footerPenjualan'          => $this->rp($footerPenjualan),
+            'footerPenjualanTrend'     => $footerPenjualanTrend,
+            'footerPenjualanTrendUp'   => $footerPenjualanTrendUp,
+            'footerPembelian'          => $this->rp($footerPembelian),
+            'footerPembelianTrend'     => $footerPembelianTrend,
+            'footerPembelianTrendUp'   => $footerPembelianTrendUp,
+            'footerPertumbuhan'        => number_format($footerPertumbuhan, 0, ',', '.') . " Transaksi",
+            'footerPertumbuhanTrend'   => $footerPertumbuhanTrend,
             'footerPertumbuhanTrendUp' => $footerPertumbuhanTrendUp,
-            'lowStockCount'     => $lowStockCount,
-            'mendekatiKadaluwarsa' => DB::table('v_expiring_medicines')->count(),
+
+            // Alert
+            'lowStockCount'        => number_format($lowStockCount, 0, ',', '.'),
+            'mendekatiKadaluwarsa' => number_format(DB::table('v_expiring_medicines')->count(), 0, ',', '.'),
         ];
 
         return view('pages.dashboard-admin', compact('data'));
+    }
+
+    // =========================================================================
+    // PRIVATE HELPERS
+    // =========================================================================
+
+    /**
+     * Format angka ke format Rupiah Indonesia (Rp 1.000.000).
+     */
+    private function rp(float $value): string
+    {
+        return 'Rp ' . number_format($value, 0, ',', '.');
+    }
+
+    /**
+     * Hitung total penjualan pada tanggal tertentu, opsional filter by user.
+     */
+    private function sumTransaksi($date, ?int $userId = null): float
+    {
+        return (float) DB::table('transactions')
+            ->when($userId, fn ($q) => $q->where('user_id', $userId))
+            ->where('status', 'completed')
+            ->whereDate('transaction_date', $date)
+            ->sum('grand_total');
+    }
+
+    /**
+     * Hitung jumlah transaksi pada tanggal tertentu, opsional filter by user.
+     */
+    private function countTransaksi($date, ?int $userId = null): int
+    {
+        return (int) DB::table('transactions')
+            ->when($userId, fn ($q) => $q->where('user_id', $userId))
+            ->where('status', 'completed')
+            ->whereDate('transaction_date', $date)
+            ->count();
+    }
+
+    /**
+     * Hitung trend persentase antara nilai sekarang vs sebelumnya.
+     * Mengembalikan [string $label, bool $isUp].
+     */
+    private function hitungTrend(float $current, float $previous, string $suffix): array
+    {
+        if ($previous > 0) {
+            $diff  = (($current - $previous) / $previous) * 100;
+            $label = ($diff >= 0 ? '+' : '') . round($diff, 1) . "% {$suffix}";
+            return [$label, $diff >= 0];
+        }
+
+        return ["0% {$suffix}", true];
+    }
+
+    /**
+     * Hitung total footer stat (sum) bulan ini pada tabel tertentu.
+     */
+    private function footerStat(string $table, string $column, string $dateColumn): float
+    {
+        return (float) DB::table($table)
+            ->where('status', 'completed')
+            ->whereMonth($dateColumn, now()->month)
+            ->whereYear($dateColumn, now()->year)
+            ->sum($column);
+    }
+
+    /**
+     * Hitung trend bulan ini vs bulan lalu untuk footer (berbasis sum).
+     * Mengembalikan [string $trend, bool $isUp].
+     */
+    private function hitungFooterTrend(string $table, string $column, string $dateColumn, float $current): array
+    {
+        $previous = (float) DB::table($table)
+            ->where('status', 'completed')
+            ->whereMonth($dateColumn, now()->subMonth()->month)
+            ->whereYear($dateColumn, now()->subMonth()->year)
+            ->sum($column);
+
+        if ($previous > 0) {
+            $diff = (($current - $previous) / $previous) * 100;
+            return [round(abs($diff), 1) . '%', $diff >= 0];
+        }
+
+        return ['0.0%', true];
+    }
+
+    /**
+     * Hitung trend bulan ini vs bulan lalu untuk footer (berbasis count distinct).
+     * Mengembalikan [string $trend, bool $isUp].
+     */
+    private function hitungFooterTrendCount(string $table, string $dateColumn, int $current): array
+    {
+        $previous = (int) DB::table($table)
+            ->where('status', 'completed')
+            ->whereMonth($dateColumn, now()->subMonth()->month)
+            ->whereYear($dateColumn, now()->subMonth()->year)
+            ->distinct()
+            ->count('customer_name');
+
+        if ($previous > 0) {
+            $diff = (($current - $previous) / $previous) * 100;
+            return [round(abs($diff), 1) . '%', $diff >= 0];
+        }
+
+        return ['0.0%', true];
+    }
+
+    /**
+     * Data chart penjualan 7 hari terakhir, opsional filter by user (kasir).
+     */
+    private function getPenjualanChart(?int $userId = null): array
+    {
+        $dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        $chart    = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date  = today()->subDays($i);
+            $nilai = (float) DB::table('transactions')
+                ->when($userId, fn ($q) => $q->where('user_id', $userId))
+                ->whereDate('transaction_date', $date)
+                ->where('status', 'completed')
+                ->sum('grand_total');
+
+            $chart[] = ['hari' => $dayNames[$date->dayOfWeek], 'nilai' => $nilai];
+        }
+
+        return $chart;
+    }
+
+    /**
+     * Data donut chart distribusi obat per kategori.
+     */
+    private function getDistribusiObat(): array
+    {
+        $colors     = ['#009688', '#26a69a', '#80cbc4', '#b2dfdb', '#e0f2f1'];
+        $categories = DB::table('v_medicine_stock_summary')
+            ->select('category_name', DB::raw('count(*) as count'))
+            ->groupBy('category_name')
+            ->orderBy('count', 'desc')
+            ->get();
+
+        $total  = $categories->sum('count');
+        $result = [];
+
+        foreach ($categories as $i => $cat) {
+            if ($total > 0) {
+                $result[] = [
+                    'label'  => $cat->category_name ?: 'Lainnya',
+                    'persen' => round(($cat->count / $total) * 100),
+                    'warna'  => $colors[$i % count($colors)],
+                ];
+            }
+        }
+
+        return $result ?: [['label' => 'Belum ada', 'persen' => 100, 'warna' => '#009688']];
+    }
+
+    /**
+     * Daftar top 5 obat terlaris.
+     *
+     * @param  int|null  $userId   Filter by kasir (null = semua)
+     * @param  bool      $withNo   Sertakan nomor urut (untuk admin)
+     */
+    private function getTopObat(?int $userId = null, bool $withNo = false): array
+    {
+        $medicines = DB::table('transaction_details')
+            ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
+            ->join('medicines',    'transaction_details.medicine_id',    '=', 'medicines.id')
+            ->join('categories',   'medicines.category_id',              '=', 'categories.id')
+            ->where('transactions.status', 'completed')
+            ->when($userId, fn ($q) => $q->where('transactions.user_id', $userId))
+            ->select('medicines.name', 'categories.name as kategori', DB::raw('SUM(transaction_details.quantity) as total_qty'))
+            ->groupBy('medicines.id', 'medicines.name', 'categories.name')
+            ->orderBy('total_qty', 'desc')
+            ->limit(5)
+            ->get();
+
+        if ($medicines->isEmpty()) {
+            $medicines = Medicine::with('category')->limit(5)->get()->map(fn ($m) => (object) [
+                'name'     => $m->name,
+                'kategori' => $m->category->name ?? '-',
+                'total_qty' => 0,
+            ]);
+        }
+
+        return $medicines->values()->map(function ($m, $i) use ($withNo) {
+            $row = ['nama' => $m->name, 'kategori' => $m->kategori, 'terjual' => number_format((int) $m->total_qty, 0, ',', '.')];
+            if ($withNo) {
+                $row = array_merge(['no' => $i + 1], $row);
+            }
+            return $row;
+        })->toArray();
+    }
+
+    /**
+     * Daftar aktivitas terbaru dari activity_logs.
+     *
+     * @param  int|null  $userId       Filter by user (null = semua)
+     * @param  int       $limit        Jumlah item
+     * @param  string    $defaultText  Teks fallback jika tidak ada log
+     */
+    private function getAktivitas(?int $userId = null, int $limit = 4, string $defaultText = 'Sistem aktif.'): array
+    {
+        $logs = DB::table('activity_logs')
+            ->when($userId, fn ($q) => $q->where('user_id', $userId))
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+
+        if ($logs->isEmpty()) {
+            return [['warna' => 'teal', 'text' => $defaultText, 'waktu' => 'Baru saja']];
+        }
+
+        return $logs->map(fn ($log) => [
+            'warna' => $log->action === 'delete' ? 'orange' : 'teal',
+            'text'  => $log->activity,
+            'waktu' => Carbon::parse($log->created_at)->diffForHumans(),
+        ])->toArray();
+    }
+
+    /**
+     * Daftar obat mendekati kadaluwarsa (maks 3 item).
+     */
+    private function getObatKadaluwarsa(): array
+    {
+        return DB::table('v_expiring_medicines')
+            ->limit(3)
+            ->get()
+            ->map(fn ($e) => [
+                'nama'  => $e->medicine_name,
+                'batch' => 'Batch: ' . $e->batch_number,
+                'hari'  => number_format($e->days_until_expiry, 0, ',', '.'),
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Daftar obat dengan stok rendah (maks 3 item).
+     */
+    private function getObatStokRendah(): array
+    {
+        return DB::table('v_medicine_stock_summary')
+            ->where('stock_status', 'Stok Rendah')
+            ->limit(3)
+            ->get()
+            ->map(fn ($ls) => [
+                'nama'     => $ls->medicine_name,
+                'kategori' => $ls->category_name ?? 'Lainnya',
+                'sisa'     => number_format($ls->total_stock, 0, ',', '.'),
+                'persen'   => $ls->min_stock > 0 ? round(($ls->total_stock / $ls->min_stock) * 100) : 0,
+            ])
+            ->toArray();
     }
 }

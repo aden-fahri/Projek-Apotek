@@ -239,15 +239,24 @@ class TransactionController extends Controller
             $query->where('user_id', Auth::id());
         }
 
-        // Filter tanggal
-        if ($request->has('start_date') && $request->start_date != '') {
+        // Filter pencarian (invoice / pelanggan)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhere('customer_name',  'like', "%{$search}%");
+            });
+        }
+
+        // Filter tanggal (tetap dipertahankan)
+        if ($request->filled('start_date')) {
             $query->whereDate('transaction_date', '>=', $request->start_date);
         }
-        if ($request->has('end_date') && $request->end_date != '') {
+        if ($request->filled('end_date')) {
             $query->whereDate('transaction_date', '<=', $request->end_date);
         }
 
-        $transactions = $query->paginate(15);
+        $transactions = $query->paginate(15)->withQueryString();
 
         return view('transactions.history', compact('transactions'));
     }

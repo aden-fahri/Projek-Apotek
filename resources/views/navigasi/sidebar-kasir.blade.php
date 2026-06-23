@@ -7,27 +7,27 @@
             @if($sidebarKasir->logo && file_exists(public_path($sidebarKasir->logo)))
                 <img src="{{ asset($sidebarKasir->logo) }}" alt="Logo" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
             @else
-                <i class="fa-solid fa-pills"></i>
+                <span style="font-size:20px;font-weight:800;color:#fff;">S</span>
             @endif
         </div>
         <div class="sidebar-logo-text">
             <p class="sidebar-logo-title">{{ $sidebarKasir->pharmacy_name }}</p>
-            <p class="sidebar-logo-subtitle">Pharmacy Management</p>
+            <p class="sidebar-logo-subtitle">Sistem Apotek</p>
         </div>
     </div>
 
     {{-- Navigation --}}
     <nav class="sidebar-nav">
         <a href="{{ route('dashboard.kasir') }}" class="{{ request()->routeIs('dashboard.kasir') ? 'active' : '' }}">
-            <i class="fa-solid fa-gauge-high nav-icon"></i>
+            <i class="fa-solid fa-house nav-icon"></i>
             Dashboard
         </a>
         <a href="{{ route('stok-obat') }}" class="{{ request()->routeIs('stok-obat') ? 'active' : '' }}">
-            <i class="fa-solid fa-box nav-icon"></i>
+            <i class="fa-solid fa-capsules nav-icon"></i>
             Stok Obat
         </a>
         <a href="{{ route('kasir') }}" class="{{ request()->routeIs('kasir') ? 'active' : '' }}">
-            <i class="fa-solid fa-calculator nav-icon"></i>
+            <i class="fa-solid fa-cash-register nav-icon"></i>
             Sistem Kasir
         </a>
         <a href="{{ route('riwayat-transaksi') }}" class="{{ request()->routeIs('riwayat-transaksi') ? 'active' : '' }}">
