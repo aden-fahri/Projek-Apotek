@@ -22,7 +22,7 @@ body {
 /* ===== SIDEBAR ===== */
 .sidebar-light {
     width: 220px;
-    min-height: 100vh;
+    height: 100vh;
     background: #086c61; /* Dark teal background */
     border-right: none;
     display: flex;
@@ -32,6 +32,23 @@ body {
     top: 0;
     z-index: 40;
     flex-shrink: 0;
+    overflow-y: auto;
+    /* Custom thin scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sidebar-light::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-light::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-light::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
 }
 
 /* Logo area */

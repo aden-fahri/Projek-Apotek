@@ -344,6 +344,246 @@ class InventoryController extends Controller
     }
 
     /**
+     * F-10: Purchase Order (PO) - Edit Form
+     */
+    public function poEdit($id)
+    {
+        $po = PurchaseOrder::with(['details.medicine'])->findOrFail($id);
+        
+        // Prevent editing if cancelled
+        if ($po->status === 'cancelled') {
+            return redirect()->route('purchase-order')->with('error', 'Tidak dapat mengubah Purchase Order yang sudah dibatalkan.');
+        }
+
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
+        $medicines = Medicine::where('is_active', true)->orderBy('name')->get();
+
+        return view('inventory.po.edit', compact('po', 'suppliers', 'medicines'));
+    }
+
+    /**
+     * F-10: Purchase Order (PO) - Cancel Action
+     */
+    public function poCancel($id)
+    {
+        $po = PurchaseOrder::with('details')->findOrFail($id);
+
+        if ($po->status === 'cancelled') {
+            return redirect()->route('purchase-order')->with('error', 'Purchase Order sudah dalam status batal.');
+        }
+
+        // Verify if any stock batch associated with this PO has been sold/used
+        foreach ($po->details as $detail) {
+            $stock = MedicineStock::where('purchase_order_id', $po->id)
+                ->where('medicine_id', $detail->medicine_id)
+                ->where('batch_number', $detail->batch_number)
+                ->first();
+
+            if ($stock && $stock->quantity < $stock->initial_quantity) {
+                $soldQty = $stock->initial_quantity - $stock->quantity;
+                return redirect()->route('purchase-order')->with('error', "Tidak dapat membatalkan Purchase Order ini karena obat {$detail->medicine->name} (Batch: {$detail->batch_number}) sudah terjual/digunakan sebanyak {$soldQty} item.");
+            }
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Delete corresponding stock batches
+            MedicineStock::where('purchase_order_id', $po->id)->delete();
+
+            // Set PO status to cancelled
+            $po->update(['status' => 'cancelled']);
+
+            $this->logActivity(
+                "Membatalkan Pembelian (Purchase Order): {$po->invoice_number}",
+                'update',
+                ['po_id' => $po->id, 'invoice_number' => $po->invoice_number, 'status' => 'cancelled']
+            );
+
+            DB::commit();
+
+            return redirect()->route('purchase-order')->with('success', "Pembelian {$po->invoice_number} berhasil dibatalkan!");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('purchase-order')->with('error', 'Terjadi kesalahan saat membatalkan pembelian: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * F-10: Purchase Order (PO) - Update Action
+     */
+    public function poUpdate(Request $request, $id)
+    {
+        $po = PurchaseOrder::with('details')->findOrFail($id);
+
+        if ($po->status === 'cancelled') {
+            return redirect()->route('purchase-order')->with('error', 'Tidak dapat mengubah Purchase Order yang sudah dibatalkan.');
+        }
+
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'order_date'  => 'required|date',
+            'notes'       => 'nullable|string',
+            'items'       => 'required|array|min:1',
+            'items.*.medicine_id'   => 'required|exists:medicines,id',
+            'items.*.quantity'      => 'required|integer|min:1',
+            'items.*.purchase_price'=> 'required|numeric|min:0',
+            'items.*.batch_number'  => 'required|string',
+            'items.*.expiry_date'   => 'required|date|after_or_equal:order_date',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // We need to sync items. To preserve stock integrity, let's map existing details.
+            $existingDetails = $po->details->keyBy('id');
+            $submittedItems = collect($request->items);
+            $submittedDetailIds = $submittedItems->pluck('id')->filter()->toArray();
+
+            // 1. Check for deleted items
+            $deletedDetails = $existingDetails->diffKeys(array_flip($submittedDetailIds));
+            foreach ($deletedDetails as $deletedDetail) {
+                // Check if this stock has been sold
+                $stock = MedicineStock::where('purchase_order_id', $po->id)
+                    ->where('medicine_id', $deletedDetail->medicine_id)
+                    ->where('batch_number', $deletedDetail->batch_number)
+                    ->first();
+
+                if ($stock && $stock->quantity < $stock->initial_quantity) {
+                    throw new \Exception("Tidak dapat menghapus obat {$deletedDetail->medicine->name} (Batch: {$deletedDetail->batch_number}) karena stoknya sudah digunakan/terjual.");
+                }
+
+                // Delete stock and detail
+                if ($stock) {
+                    $stock->delete();
+                }
+                $deletedDetail->delete();
+            }
+
+            // 2. Process submitted items (updates & new additions)
+            $totalAmount = 0;
+
+            foreach ($request->items as $item) {
+                $subtotal = $item['quantity'] * $item['purchase_price'];
+                $totalAmount += $subtotal;
+
+                $detailId = $item['id'] ?? null;
+
+                if ($detailId && isset($existingDetails[$detailId])) {
+                    // Updating an existing item
+                    $detail = $existingDetails[$detailId];
+
+                    // Find corresponding stock record
+                    $stock = MedicineStock::where('purchase_order_id', $po->id)
+                        ->where('medicine_id', $detail->medicine_id)
+                        ->where('batch_number', $detail->batch_number)
+                        ->first();
+
+                    // If medicine or batch number changed, we check if old stock is used
+                    $batchOrMedChanged = ($detail->medicine_id != $item['medicine_id']) || ($detail->batch_number != $item['batch_number']);
+                    
+                    if ($batchOrMedChanged) {
+                        if ($stock && $stock->quantity < $stock->initial_quantity) {
+                            throw new \Exception("Tidak dapat mengganti obat/batch untuk {$detail->medicine->name} (Batch: {$detail->batch_number}) karena stoknya sudah digunakan/terjual.");
+                        }
+                    }
+
+                    // Check if new quantity is less than sold quantity
+                    if ($stock) {
+                        $soldQty = $stock->initial_quantity - $stock->quantity;
+                        if ($item['quantity'] < $soldQty) {
+                            throw new \Exception("Jumlah obat {$detail->medicine->name} tidak boleh kurang dari {$soldQty} karena {$soldQty} item sudah terjual/digunakan.");
+                        }
+                        
+                        // Update stock record
+                        $stock->update([
+                            'medicine_id'  => $item['medicine_id'],
+                            'batch_number' => $item['batch_number'],
+                            'quantity'     => $item['quantity'] - $soldQty,
+                            'initial_quantity' => $item['quantity'],
+                            'expiry_date'  => $item['expiry_date'],
+                        ]);
+                    } else {
+                        // Create stock if somehow missing
+                        MedicineStock::create([
+                            'medicine_id'       => $item['medicine_id'],
+                            'purchase_order_id' => $po->id,
+                            'batch_number'      => $item['batch_number'],
+                            'quantity'          => $item['quantity'],
+                            'initial_quantity'  => $item['quantity'],
+                            'expiry_date'       => $item['expiry_date'],
+                            'status'            => 'available',
+                        ]);
+                    }
+
+                    // Update detail record
+                    $detail->update([
+                        'medicine_id'    => $item['medicine_id'],
+                        'quantity'       => $item['quantity'],
+                        'purchase_price' => $item['purchase_price'],
+                        'subtotal'       => $subtotal,
+                        'batch_number'   => $item['batch_number'],
+                        'expiry_date'    => $item['expiry_date'],
+                    ]);
+
+                } else {
+                    // Adding a new item
+                    PurchaseOrderDetail::create([
+                        'purchase_order_id' => $po->id,
+                        'medicine_id'       => $item['medicine_id'],
+                        'quantity'          => $item['quantity'],
+                        'purchase_price'    => $item['purchase_price'],
+                        'subtotal'          => $subtotal,
+                        'batch_number'      => $item['batch_number'],
+                        'expiry_date'       => $item['expiry_date'],
+                    ]);
+
+                    MedicineStock::create([
+                        'medicine_id'       => $item['medicine_id'],
+                        'purchase_order_id' => $po->id,
+                        'batch_number'      => $item['batch_number'],
+                        'quantity'          => $item['quantity'],
+                        'initial_quantity'  => $item['quantity'],
+                        'expiry_date'       => $item['expiry_date'],
+                        'status'            => 'available',
+                    ]);
+                }
+
+                // Update latest purchase price of the medicine
+                $medicine = Medicine::find($item['medicine_id']);
+                if ($medicine) {
+                    $medicine->update([
+                        'purchase_price' => $item['purchase_price']
+                    ]);
+                }
+            }
+
+            // 3. Update PO Header
+            $po->update([
+                'supplier_id'  => $request->supplier_id,
+                'order_date'   => $request->order_date,
+                'total_amount' => $totalAmount,
+                'notes'        => $request->notes,
+            ]);
+
+            $this->logActivity(
+                "Memperbarui Pembelian (Purchase Order): {$po->invoice_number}",
+                'update',
+                ['po_id' => $po->id, 'invoice_number' => $po->invoice_number, 'total_amount' => $totalAmount]
+            );
+
+            DB::commit();
+
+            return redirect()->route('purchase-order')->with('success', "Pembelian {$po->invoice_number} berhasil diperbarui!");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat memperbarui pembelian: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * F-14: Return Obat - List
      */
     public function returnIndex()

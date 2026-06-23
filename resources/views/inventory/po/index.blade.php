@@ -37,11 +37,12 @@
                 <thead class="table-header">
                     <tr>
                         <th class="text-left w-[15%]">No. Invoice PO</th>
-                        <th class="text-left w-[20%]">Supplier</th>
-                        <th class="text-left w-[35%]">Daftar Item Obat</th>
+                        <th class="text-left w-[15%]">Supplier</th>
+                        <th class="text-left w-[30%]">Daftar Item Obat</th>
                         <th class="text-left w-[12%]">Tanggal Order</th>
                         <th class="text-right w-[10%]">Total Nilai</th>
                         <th class="text-center w-[8%]">Status</th>
+                        <th class="text-center w-[10%]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="table-body">
@@ -78,10 +79,32 @@
                                     <span class="inline-flex items-center bg-red-100 text-red-600 text-xs font-semibold px-2.5 py-0.5 rounded-full">Batal</span>
                                 @endif
                             </td>
+                            <td class="text-center pt-4">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    @if($po->status !== 'cancelled')
+                                        <a href="{{ route('purchase-order.edit', $po->id) }}" 
+                                           class="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg p-1.5 transition-colors" 
+                                           title="Edit PO">
+                                            <i class="fa-solid fa-pen-to-square text-[13px]"></i>
+                                        </a>
+                                        <form action="{{ route('purchase-order.cancel', $po->id) }}" method="POST" class="inline" 
+                                              onsubmit="return confirm('Apakah Anda yakin ingin membatalkan Purchase Order ini? Seluruh stok terkait akan dihapus.')">
+                                            @csrf
+                                            <button type="submit" 
+                                                    class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg p-1.5 transition-colors" 
+                                                    title="Batalkan PO">
+                                                <i class="fa-solid fa-xmark text-[13px] px-[2px]"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-gray-400 text-[12px] font-medium">-</span>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-8 text-gray-400">Belum ada riwayat pembelian.</td>
+                            <td colspan="7" class="text-center py-8 text-gray-400">Belum ada riwayat pembelian.</td>
                         </tr>
                     @endforelse
                 </tbody>
