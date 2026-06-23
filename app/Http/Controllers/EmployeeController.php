@@ -139,4 +139,18 @@ class EmployeeController extends Controller
 
         return redirect()->route('employees.index')->with('success', 'Data karyawan berhasil diperbarui.');
     }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(User $employee)
+    {
+        if (auth()->id() === $employee->id) {
+            return redirect()->route('employees.index')->withErrors(['Anda tidak dapat menghapus akun Anda sendiri yang sedang digunakan.']);
+        }
+
+        $employee->delete();
+
+        return redirect()->route('employees.index')->with('success', 'Karyawan berhasil dihapus.');
+    }
 }
